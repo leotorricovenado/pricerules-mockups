@@ -1,6 +1,8 @@
 import { useState } from "react"
-import { Trash2, Info } from "lucide-react"
+import { Trash2, Info, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -18,7 +20,7 @@ import {
 } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { CatalogCombobox } from "./CatalogCombobox"
-import type { CatalogItem } from "../data/catalogs"
+import type { CatalogItem, ProductCatalogItem } from "../data/catalogs"
 import type { CriteriaElementType, CriteriaRow, SpecificElementType, SpecificRow } from "../types"
 
 interface ElementConfig<T extends string> {
@@ -168,17 +170,34 @@ export function SpecificRowsPanel({
   const config = elements.find((e) => e.value === activeType)
   const locked = rows.length > 0
 
+  // Producto pasa por un paso intermedio: al elegirlo se muestra su Unidad de Medida real (viene
+  // del catálogo, no se puede tocar) y recién con "Adicionar" se agrega la fila — igual que el JSF viejo.
+  const [pendingProduct, setPendingProduct] = useState<ProductCatalogItem | null>(null)
+
   function addRow(item: CatalogItem) {
+    if (activeType === "PRODUCTO") {
+      setPendingProduct(item as ProductCatalogItem)
+      return
+    }
+    onChange([
+      ...rows,
+      { id: crypto.randomUUID(), type: activeType, code: item.code, name: item.name },
+    ])
+  }
+
+  function confirmAddProduct() {
+    if (!pendingProduct) return
     onChange([
       ...rows,
       {
         id: crypto.randomUUID(),
-        type: activeType,
-        code: item.code,
-        name: item.name,
-        unit: activeType === "PRODUCTO" ? "UN" : undefined,
+        type: "PRODUCTO",
+        code: pendingProduct.code,
+        name: pendingProduct.name,
+        unit: pendingProduct.unit,
       },
     ])
+    setPendingProduct(null)
   }
 
   function removeRow(id: string) {
@@ -193,7 +212,10 @@ export function SpecificRowsPanel({
           <Select
             value={activeType}
             disabled={locked}
-            onValueChange={(v) => setSelectedType(v as SpecificElementType)}
+            onValueChange={(v) => {
+              setSelectedType(v as SpecificElementType)
+              setPendingProduct(null)
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -227,8 +249,24 @@ export function SpecificRowsPanel({
           <CatalogCombobox
             items={config?.catalog ?? []}
             onSelect={addRow}
-            placeholder={`Buscar ${config?.label.toLowerCase() ?? ""}…`}
+            placeholder={
+              activeType === "PRODUCTO" && pendingProduct
+                ? pendingProduct.name
+                : `Buscar ${config?.label.toLowerCase() ?? ""}…`
+            }
           />
+
+          {activeType === "PRODUCTO" && pendingProduct && (
+            <div className="flex items-end gap-2 rounded-lg border bg-muted/30 p-3">
+              <div className="flex-1 space-y-1.5">
+                <Label>Unidad de Medida</Label>
+                <Input value={pendingProduct.unit} disabled className="bg-muted" />
+              </div>
+              <Button type="button" onClick={confirmAddProduct} className="gap-1.5">
+                <Plus /> Adicionar
+              </Button>
+            </div>
+          )}
 
           {rows.length > 0 && (
             <div className="rounded-lg border">

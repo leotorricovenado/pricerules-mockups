@@ -56,7 +56,8 @@ export interface ScaleRow {
   id: string
   from: number
   to: number | null // null = "Este valor no tiene limite" (thru: null)
-  value: number
+  value?: number // sin valor numérico para Bonificación/Recargo — el resultado son productos, no un monto
+  outcomeType?: OutcomeType // el Tipo de Resultado vigente al momento de adicionar la escala (columna "Tipo")
 }
 
 export interface OptionalProductRow {
@@ -65,6 +66,19 @@ export interface OptionalProductRow {
   name: string
   unit: string
   qty: number
+}
+
+// Fila de "Bonificación de Productos" / "Recargo por producto": a diferencia de un producto de
+// Criterios Específicos, acá la unidad SÍ se elige (dentro de la cadena de empaque del producto).
+// `optionalProducts` son las equivalencias intercambiables de ESTE producto puntual — solo tiene
+// sentido para Bonificación (un Recargo no tiene "regalo" que sustituir).
+export interface OutcomeProductRow {
+  id: string
+  code: string
+  name: string
+  unit: string
+  qty: number
+  optionalProducts?: OptionalProductRow[]
 }
 
 export interface PriceRule {
@@ -97,12 +111,14 @@ export interface PriceRule {
   // Panel "Configuración del Resultado Esperado"
   target: TargetEnum
   outcomeType: OutcomeType
-  value?: number // para Tradicional (SINGLE): valor simple del resultado
-  scaleType?: ScaleType // solo si outcomeMode === SCALE
+  value?: number // Tradicional/Frecuencia con resultado numérico (%, monto o precio fijo)
+  scaleType?: ScaleType // Tipo de Validación — cuando outcomeMode es SCALE o FREQUENCY
   scales?: ScaleRow[] // solo si outcomeMode === SCALE
   frequency?: number // solo si outcomeMode === FREQUENCY
+  /** @deprecated reemplazado por `outcomeProducts` — se mantiene solo para no romper reglas ya guardadas con el modelo viejo (un solo producto). */
   bonusProduct?: { code: string; name: string; unit: string; qty: number }
-  optionalProducts?: OptionalProductRow[]
+  outcomeProducts?: OutcomeProductRow[] // Bonificación de Productos / Recargo por producto (múltiples filas)
+  optionalProducts?: OptionalProductRow[] // equivalencias del producto de regalo (solo Bonificación)
 
   createdBy: string
   createdAt: string // ISO datetime
@@ -134,5 +150,6 @@ export const emptyRule = (): Omit<PriceRule, "id" | "createdBy" | "createdAt" | 
   scaleType: "QUANTITY",
   scales: [],
   frequency: undefined,
+  outcomeProducts: [],
   optionalProducts: [],
 })

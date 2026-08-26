@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown, Search, X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -10,7 +11,6 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
 import type { CatalogItem } from "../data/catalogs"
 
 // Combobox con búsqueda "contiene" (no prefijo) — replica el select2 typeahead del JSF viejo
@@ -29,9 +29,18 @@ export function CatalogCombobox({
   emptyMessage?: string
 }) {
   const [open, setOpen] = useState(false)
+  // Buscador controlado: cmdk lo deja como estaba entre aperturas si no se resetea a mano, así
+  // que al elegir un item o cerrar el popover se limpia para que la próxima búsqueda arranque en blanco.
+  const [search, setSearch] = useState("")
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o)
+        if (!o) setSearch("")
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -53,7 +62,7 @@ export function CatalogCombobox({
             return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
           }}
         >
-          <CommandInput placeholder={placeholder} />
+          <CommandInput placeholder={placeholder} value={search} onValueChange={setSearch} />
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
@@ -63,6 +72,7 @@ export function CatalogCombobox({
                   value={`${item.code} ${item.name}`}
                   onSelect={() => {
                     onSelect(item)
+                    setSearch("")
                     setOpen(false)
                   }}
                 >
@@ -81,82 +91,114 @@ export function CatalogCombobox({
   )
 }
 
-// Multi-select simple sobre el mismo patrón (Distribuidora, Almacenes) — checkboxes dentro del Command.
-export function CatalogMultiSelect({
+// Multi-select sobre el mismo patrón (Distribuidora, Almacenes, Roles) — las opciones ya
+// seleccionadas se muestran como chips debajo del trigger (sin tener que abrir el dropdown para
+// ver cuáles son) y desaparecen de la lista del dropdown al reabrirlo, para no tener que buscar
+// entre lo que ya se eligió.
+export function CatalogMultiSelect<TKey extends string | number = number>({
   items,
   selectedIds,
   onChange,
   placeholder = "Seleccionar…",
+  getKey = (item) => item.id as unknown as TKey,
 }: {
   items: CatalogItem[]
-  selectedIds: number[]
-  onChange: (ids: number[]) => void
+  selectedIds: TKey[]
+  onChange: (ids: TKey[]) => void
   placeholder?: string
+  getKey?: (item: CatalogItem) => TKey
 }) {
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
 
-  function toggle(id: number) {
-    if (selectedIds.includes(id)) {
-      onChange(selectedIds.filter((i) => i !== id))
-    } else {
-      onChange([...selectedIds, id])
-    }
+  function add(key: TKey) {
+    onChange([...selectedIds, key])
+    setSearch("")
   }
 
-  const summary =
-    selectedIds.length === 0
-      ? placeholder
-      : selectedIds.length === 1
-        ? items.find((i) => i.id === selectedIds[0])?.name
-        : `${selectedIds.length} seleccionados`
+  function remove(key: TKey) {
+    onChange(selectedIds.filter((i) => i !== key))
+  }
+
+  const selectedItems = selectedIds
+    .map((key) => items.find((item) => getKey(item) === key))
+    .filter((item): item is CatalogItem => Boolean(item))
+
+  const availableItems = items.filter((item) => !selectedIds.includes(getKey(item)))
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between font-normal",
-            selectedIds.length === 0 && "text-muted-foreground"
-          )}
-        >
-          <span className="truncate">{summary}</span>
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0" align="start">
-        <Command
-          filter={(value, search) => {
-            return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-          }}
-        >
-          <CommandInput placeholder="Buscar…" />
-          <CommandList>
-            <CommandEmpty>Sin resultados.</CommandEmpty>
-            <CommandGroup>
-              {items.map((item) => (
-                <CommandItem
-                  key={item.id}
-                  value={`${item.code} ${item.name}`}
-                  onSelect={() => toggle(item.id)}
-                >
-                  <Check
-                    className={cn(
-                      selectedIds.includes(item.id) ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <span className="flex flex-col">
-                    <span className="text-sm">{item.name}</span>
-                    <span className="text-xs text-muted-foreground">{item.code}</span>
-                  </span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div className="space-y-1.5">
+      <Popover
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o)
+          if (!o) setSearch("")
+        }}
+      >
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal text-muted-foreground"
+          >
+            <span className="flex items-center gap-1.5">
+              <Search className="size-3.5" />
+              {placeholder}
+            </span>
+            <ChevronsUpDown className="opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[320px] p-0" align="start">
+          <Command
+            filter={(value, search) => {
+              return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
+            }}
+          >
+            <CommandInput placeholder="Buscar…" value={search} onValueChange={setSearch} />
+            <CommandList>
+              <CommandEmpty>
+                {availableItems.length === 0 && items.length > 0
+                  ? "Ya se seleccionaron todos."
+                  : "Sin resultados."}
+              </CommandEmpty>
+              <CommandGroup>
+                {availableItems.map((item) => (
+                  <CommandItem
+                    key={getKey(item)}
+                    value={`${item.code} ${item.name}`}
+                    onSelect={() => add(getKey(item))}
+                  >
+                    <Check className="opacity-0" />
+                    <span className="flex flex-col">
+                      <span className="text-sm">{item.name}</span>
+                      <span className="text-xs text-muted-foreground">{item.code}</span>
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {selectedItems.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedItems.map((item) => (
+            <Badge key={getKey(item)} variant="secondary" className="gap-1 py-1 pr-1">
+              {item.name}
+              <button
+                type="button"
+                onClick={() => remove(getKey(item))}
+                aria-label={`Quitar ${item.name}`}
+                className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

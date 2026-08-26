@@ -414,7 +414,8 @@ export function PriceRuleListPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-24">Código</TableHead>
-              <TableHead className="min-w-[220px]">Regla</TableHead>
+              <TableHead className="min-w-[180px]">Nombre</TableHead>
+              <TableHead className="min-w-[240px]">Descripción</TableHead>
               <TableHead className="w-[150px]">Creado</TableHead>
               <TableHead className="w-[170px]">Vigencia</TableHead>
               <TableHead className="w-28">Tipo</TableHead>
@@ -427,7 +428,7 @@ export function PriceRuleListPage() {
           <TableBody>
             {paginated.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                   No se encontraron reglas con esos filtros.
                 </TableCell>
               </TableRow>
@@ -439,11 +440,9 @@ export function PriceRuleListPage() {
                 onClick={() => navigate(`/reglas-precio/${r.id}`)}
               >
                 <TableCell className="font-mono text-xs text-muted-foreground">{r.id}</TableCell>
-                <TableCell className="max-w-[320px] py-2.5 whitespace-normal">
-                  <div className="font-medium">{r.name}</div>
-                  {r.description && (
-                    <div className="line-clamp-2 text-xs text-muted-foreground">{r.description}</div>
-                  )}
+                <TableCell className="py-2.5 font-medium whitespace-normal">{r.name}</TableCell>
+                <TableCell className="py-2.5 text-sm whitespace-normal text-muted-foreground">
+                  {r.description || "—"}
                 </TableCell>
                 <TableCell className="text-sm whitespace-normal text-muted-foreground">
                   {formatDateTime(r.createdAt)}

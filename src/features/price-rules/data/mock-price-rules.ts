@@ -143,7 +143,7 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     specificRows: [{ id: "s1", type: "CATEGORIA", code: "CAT-03", name: "Bebidas" }],
     target: "PRODUCT",
     outcomeType: "PRODUCT_SURCHARGE",
-    value: 1.5,
+    outcomeProducts: [{ id: "op1", code: "P-5009", name: "Agua Speranza 2L", unit: "PAQUETE", qty: 1 }],
     createdBy: "ernesto.montero",
     createdAt: "2026-07-28T14:00:00",
     updatedAt: "2026-08-22T08:00:00",

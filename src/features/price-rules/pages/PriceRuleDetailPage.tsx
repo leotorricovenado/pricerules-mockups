@@ -51,6 +51,8 @@ export function PriceRuleDetailPage() {
     )
   }
 
+  const isProductOutcome = rule.outcomeType === "PRODUCT" || rule.outcomeType === "PRODUCT_SURCHARGE"
+
   return (
     <div className="space-y-6 pb-16">
       <div className="flex items-start justify-between gap-4">
@@ -212,13 +214,13 @@ export function PriceRuleDetailPage() {
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
           <Field label="Objetivo" value={TARGET_LABELS[rule.target]} />
           <Field label="Tipo de Resultado" value={OUTCOME_TYPE_LABELS[rule.outcomeType]} />
-          {rule.outcomeMode === "SINGLE" && rule.outcomeType !== "PRODUCT" && (
+          {rule.outcomeMode !== "SCALE" && !isProductOutcome && (
             <Field label="Valor" value={String(rule.value ?? "—")} />
           )}
           {rule.outcomeMode === "FREQUENCY" && (
             <Field label="Frecuencia" value={String(rule.frequency ?? "—")} />
           )}
-          {rule.outcomeMode === "SCALE" && (
+          {(rule.outcomeMode === "SCALE" || rule.outcomeMode === "FREQUENCY") && (
             <Field label="Tipo de Validación" value={SCALE_TYPE_LABELS[rule.scaleType ?? "QUANTITY"]} />
           )}
         </dl>
@@ -231,6 +233,7 @@ export function PriceRuleDetailPage() {
                   <TableHead>Desde</TableHead>
                   <TableHead>Hasta</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Tipo</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -240,7 +243,10 @@ export function PriceRuleDetailPage() {
                     <TableRow key={s.id}>
                       <TableCell>{s.from}</TableCell>
                       <TableCell>{s.to ?? "Sin límite"}</TableCell>
-                      <TableCell>{s.value}</TableCell>
+                      <TableCell>{s.value ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {OUTCOME_TYPE_LABELS[s.outcomeType ?? rule.outcomeType]}
+                      </TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -248,15 +254,69 @@ export function PriceRuleDetailPage() {
           </div>
         )}
 
-        {rule.outcomeType === "PRODUCT" && rule.bonusProduct && (
+        {isProductOutcome && (
           <>
             <Separator />
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-              <Field label="Producto de bonificación" value={rule.bonusProduct.name} />
-              <Field label="Unidad de Medida" value={rule.bonusProduct.unit} />
-              <Field label="Cantidad" value={String(rule.bonusProduct.qty)} />
-            </dl>
-            {rule.optionalProducts && rule.optionalProducts.length > 0 && (
+            <div className="space-y-3">
+              <Field label="Aplicación Regla" value={EXCLUSIVE_OUTCOME_LABELS[rule.exclusiveOutcome]} />
+              {rule.outcomeProducts && rule.outcomeProducts.length > 0 ? (
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Código</TableHead>
+                        <TableHead>Producto</TableHead>
+                        <TableHead>Unidad de Medida</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        {rule.outcomeType === "PRODUCT" && <TableHead>Productos Opcionales</TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rule.outcomeProducts.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-mono text-xs">{row.code}</TableCell>
+                          <TableCell>{row.name}</TableCell>
+                          <TableCell className="text-muted-foreground">{row.unit}</TableCell>
+                          <TableCell>{row.qty}</TableCell>
+                          {rule.outcomeType === "PRODUCT" && (
+                            <TableCell>
+                              {row.optionalProducts && row.optionalProducts.length > 0 ? (
+                                <div className="space-y-1">
+                                  {row.optionalProducts.map((op) => (
+                                    <div
+                                      key={op.id}
+                                      className="rounded border bg-muted/30 px-2 py-1 text-xs"
+                                    >
+                                      <span className="font-mono text-muted-foreground">{op.code}</span>{" "}
+                                      {op.name} <span className="text-muted-foreground">({op.unit})</span> ×{" "}
+                                      {op.qty}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                rule.bonusProduct && (
+                  <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+                    <Field label="Producto de bonificación" value={rule.bonusProduct.name} />
+                    <Field label="Unidad de Medida" value={rule.bonusProduct.unit} />
+                    <Field label="Cantidad" value={String(rule.bonusProduct.qty)} />
+                  </dl>
+                )
+              )}
+            </div>
+            {(!rule.outcomeProducts || rule.outcomeProducts.length === 0) &&
+              rule.outcomeType === "PRODUCT" &&
+              rule.optionalProducts &&
+              rule.optionalProducts.length > 0 && (
               <div className="rounded-lg border">
                 <Table>
                   <TableHeader>

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { AlertTriangle, ArrowLeft, Plus, Trash2 } from "lucide-react"
+import { AlertTriangle, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -16,14 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -33,23 +25,27 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/app/auth"
 import { usePriceRules } from "../store"
-import { CatalogCombobox, CatalogMultiSelect } from "../components/CatalogCombobox"
+import { CatalogMultiSelect } from "../components/CatalogCombobox"
 import { CriteriaRowsPanel, SpecificRowsPanel } from "../components/CriteriaRowsPanel"
 import { ScaleEditor } from "../components/ScaleEditor"
+import { OutcomeProductsPanel } from "../components/OutcomeProductsPanel"
 import {
   COMPANY_LABELS,
+  EXCLUSIVE_OUTCOME_LABELS,
   OUTCOME_TYPE_LABELS,
   RULE_TYPE_LABELS,
+  SCALE_TYPE_LABELS,
   TARGET_LABELS,
 } from "../labels"
 import {
   emptyRule,
   type Company,
+  type ExclusiveOutcome,
   type OutcomeMode,
   type OutcomeType,
-  type OptionalProductRow,
   type PaymentCondition,
   type RuleType,
+  type ScaleType,
   type TargetEnum,
 } from "../types"
 import {
@@ -67,7 +63,6 @@ import {
   PRODUCTS,
   WAREHOUSES,
   ROLE_TYPES,
-  UNITS,
 } from "../data/catalogs"
 
 const OUTCOME_MODES: { value: OutcomeMode; label: string; hint: string }[] = [
@@ -75,6 +70,22 @@ const OUTCOME_MODES: { value: OutcomeMode; label: string; hint: string }[] = [
   { value: "SCALE", label: "Escala", hint: "El resultado depende de un rango (cantidad o monto)." },
   { value: "FREQUENCY", label: "Frecuencia", hint: "El resultado se repite cada N unidades/monto." },
 ]
+
+// Precio Fijo no aplica a Frecuencia — el motor no lo soporta (§ CLAUDE.md 8, PRICING_* de prod).
+const FREQUENCY_ALLOWED_TYPES: OutcomeType[] = [
+  "DISCOUNT_PERCENTAGE",
+  "DISCOUNT_AMOUNT",
+  "PRODUCT",
+  "PRODUCT_SURCHARGE",
+]
+
+const VALUE_INPUT_LABELS: Record<OutcomeType, string> = {
+  DISCOUNT_PERCENTAGE: "Porcentaje de Descuento (%)",
+  DISCOUNT_AMOUNT: "Descuento (Bs)",
+  FIXED_PRICE: "Precio Fijo (Bs)",
+  PRODUCT: "",
+  PRODUCT_SURCHARGE: "",
+}
 
 const CRITERIA_ELEMENTS = [
   { value: "PROPIETARIO" as const, label: "Propietario", catalog: OWNERS },
@@ -112,7 +123,6 @@ function PriceRuleFormInner() {
     existing ? { ...existing } : { ...emptyRule() }
   )
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [optionalModalOpen, setOptionalModalOpen] = useState(false)
 
   // Tu rol no puede crear/editar reglas — ej. Gerente Comercial solo aprueba y activa/desactiva.
   if ((!isEdit && !can("price_rules.create")) || (isEdit && !can("price_rules.edit"))) {
@@ -169,9 +179,14 @@ function PriceRuleFormInner() {
   // Bloqueo progresivo de Empresa una vez definidos Criterios Específicos o Resultado
   // (ESPECIFICACION-UI-CAPTURADA.md §2, Cabecera).
   const companyLocked =
-    data.specificRows.length > 0 || Boolean(data.value) || (data.scales?.length ?? 0) > 0
+    data.specificRows.length > 0 ||
+    Boolean(data.value) ||
+    (data.scales?.length ?? 0) > 0 ||
+    (data.outcomeProducts?.length ?? 0) > 0
 
   const showProductTargetWarning = data.target === "PRODUCT" && data.specificRows.length === 0
+
+  const isProductOutcome = data.outcomeType === "PRODUCT" || data.outcomeType === "PRODUCT_SURCHARGE"
 
   function set<K extends keyof typeof data>(key: K, value: (typeof data)[K]) {
     setData((prev) => ({ ...prev, [key]: value }))
@@ -284,7 +299,14 @@ function PriceRuleFormInner() {
               <button
                 key={m.value}
                 type="button"
-                onClick={() => set("outcomeMode", m.value)}
+                onClick={() => {
+                  set("outcomeMode", m.value)
+                  // Precio Fijo no existe para Frecuencia (el motor no lo soporta) — si estaba
+                  // elegido, se cae a Descuento % para no dejar un Tipo de Resultado inválido.
+                  if (m.value === "FREQUENCY" && data.outcomeType === "FIXED_PRICE") {
+                    set("outcomeType", "DISCOUNT_PERCENTAGE")
+                  }
+                }}
                 className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                   data.outcomeMode === m.value
                     ? "border-primary bg-primary/5"
@@ -334,27 +356,13 @@ function PriceRuleFormInner() {
           </div>
           <div className="space-y-1.5">
             <Label>Roles</Label>
-            <div className="flex flex-wrap gap-3 pt-1.5">
-              {ROLE_TYPES.map((role) => (
-                <div key={role.id} className="flex items-center gap-1.5">
-                  <Checkbox
-                    id={`role-${role.id}`}
-                    checked={data.roleTypes.includes(role.code)}
-                    onCheckedChange={(c) =>
-                      set(
-                        "roleTypes",
-                        c === true
-                          ? [...data.roleTypes, role.code]
-                          : data.roleTypes.filter((r) => r !== role.code)
-                      )
-                    }
-                  />
-                  <Label htmlFor={`role-${role.id}`} className="font-normal">
-                    {role.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            <CatalogMultiSelect
+              items={ROLE_TYPES}
+              selectedIds={data.roleTypes}
+              onChange={(codes) => set("roleTypes", codes)}
+              getKey={(item) => item.code}
+              placeholder="Todos los roles"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Condición de Pago</Label>
@@ -475,7 +483,60 @@ function PriceRuleFormInner() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(OUTCOME_TYPE_LABELS).map(([k, v]) => (
+                {Object.entries(OUTCOME_TYPE_LABELS)
+                  .filter(
+                    ([k]) => data.outcomeMode !== "FREQUENCY" || FREQUENCY_ALLOWED_TYPES.includes(k as OutcomeType)
+                  )
+                  .map(([k, v]) => (
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {data.outcomeMode === "FREQUENCY" && (
+              <p className="text-xs text-muted-foreground">
+                Precio Fijo no está disponible para Frecuencia.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Tipo de Validación — Frecuencia o Escala, para cualquier Tipo de Resultado permitido en ese modo. */}
+        {(data.outcomeMode === "FREQUENCY" || data.outcomeMode === "SCALE") && (
+          <div className="space-y-1.5 sm:max-w-xs">
+            <Label>Tipo de Validación</Label>
+            <div className="flex gap-1">
+              {(["QUANTITY", "AMOUNT"] as ScaleType[]).map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  size="sm"
+                  variant={(data.scaleType ?? "QUANTITY") === t ? "default" : "outline"}
+                  onClick={() => set("scaleType", t)}
+                >
+                  {SCALE_TYPE_LABELS[t]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Aplicación Regla — solo Bonificación de Productos / Recargo por producto, en cualquier modo. */}
+        {isProductOutcome && (
+          <div className="space-y-1.5 sm:max-w-xs">
+            <Label>Aplicación Regla</Label>
+            <Select
+              value={data.exclusiveOutcome}
+              onValueChange={(v) => set("exclusiveOutcome", v as ExclusiveOutcome)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(EXCLUSIVE_OUTCOME_LABELS).map(([k, v]) => (
                   <SelectItem key={k} value={k}>
                     {v}
                   </SelectItem>
@@ -483,19 +544,53 @@ function PriceRuleFormInner() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        )}
 
-        <Separator />
-
-        {data.outcomeMode === "SCALE" && (
+        {/* Escala con resultado numérico (%, monto, precio fijo) — el "Valor" vive en cada escalón. */}
+        {data.outcomeMode === "SCALE" && !isProductOutcome && (
           <ScaleEditor
-            scaleType={data.scaleType ?? "QUANTITY"}
-            onScaleTypeChange={(t) => set("scaleType", t)}
             scales={data.scales ?? []}
             onChange={(scales) => set("scales", scales)}
+            outcomeType={data.outcomeType}
           />
         )}
 
+        {/* Bonificación de Productos / Recargo por producto — mismo panel para cualquier modo.
+            Las equivalencias (Productos Opcionales) solo tienen sentido para Bonificación: un
+            Recargo no tiene "regalo" que sustituir por otro producto. */}
+        {isProductOutcome && (
+          <OutcomeProductsPanel
+            rows={data.outcomeProducts ?? []}
+            onChange={(rows) => set("outcomeProducts", rows)}
+            allowOptionalProducts={data.outcomeType === "PRODUCT"}
+          />
+        )}
+
+        {/* Escala con resultado en productos — mismo Desde/Hasta, sin "Valor" (lo da el panel de arriba). */}
+        {data.outcomeMode === "SCALE" && isProductOutcome && (
+          <ScaleEditor
+            scales={data.scales ?? []}
+            onChange={(scales) => set("scales", scales)}
+            outcomeType={data.outcomeType}
+            requireValue={false}
+          />
+        )}
+
+        {/* Valor simple — Tradicional o Frecuencia con resultado numérico. */}
+        {(data.outcomeMode === "SINGLE" || data.outcomeMode === "FREQUENCY") && !isProductOutcome && (
+          <div className="max-w-xs space-y-1.5">
+            <Label htmlFor="value">{VALUE_INPUT_LABELS[data.outcomeType]}</Label>
+            <Input
+              id="value"
+              type="number"
+              step="0.01"
+              value={data.value ?? ""}
+              onChange={(e) => set("value", e.target.value ? Number(e.target.value) : undefined)}
+            />
+          </div>
+        )}
+
+        {/* Frecuencia — al final, para cualquier Tipo de Resultado permitido en ese modo. */}
         {data.outcomeMode === "FREQUENCY" && (
           <div className="max-w-xs space-y-1.5">
             <Label htmlFor="frequency">Frecuencia</Label>
@@ -511,28 +606,6 @@ function PriceRuleFormInner() {
             </p>
           </div>
         )}
-
-        {data.outcomeType === "PRODUCT" ? (
-          <BonusProductSection
-            bonusProduct={data.bonusProduct}
-            onChange={(bp) => set("bonusProduct", bp)}
-            optionalProducts={data.optionalProducts ?? []}
-            onOptionalProductsChange={(rows) => set("optionalProducts", rows)}
-            optionalModalOpen={optionalModalOpen}
-            setOptionalModalOpen={setOptionalModalOpen}
-          />
-        ) : data.outcomeMode === "SINGLE" ? (
-          <div className="max-w-xs space-y-1.5">
-            <Label htmlFor="value">Valor</Label>
-            <Input
-              id="value"
-              type="number"
-              step="0.01"
-              value={data.value ?? ""}
-              onChange={(e) => set("value", e.target.value ? Number(e.target.value) : undefined)}
-            />
-          </div>
-        ) : null}
       </Card>
 
       <div className="flex justify-end gap-2">
@@ -563,201 +636,5 @@ function PriceRuleFormInner() {
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
-
-function BonusProductSection({
-  bonusProduct,
-  onChange,
-  optionalProducts,
-  onOptionalProductsChange,
-  optionalModalOpen,
-  setOptionalModalOpen,
-}: {
-  bonusProduct: { code: string; name: string; unit: string; qty: number } | undefined
-  onChange: (bp: { code: string; name: string; unit: string; qty: number }) => void
-  optionalProducts: OptionalProductRow[]
-  onOptionalProductsChange: (rows: OptionalProductRow[]) => void
-  optionalModalOpen: boolean
-  setOptionalModalOpen: (open: boolean) => void
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label>Producto</Label>
-          <CatalogCombobox
-            items={PRODUCTS}
-            placeholder={bonusProduct ? bonusProduct.name : "Buscar producto…"}
-            onSelect={(item) =>
-              onChange({
-                code: item.code,
-                name: item.name,
-                unit: bonusProduct?.unit ?? "UN",
-                qty: bonusProduct?.qty ?? 1,
-              })
-            }
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Cantidad</Label>
-          <Input
-            type="number"
-            min={1}
-            value={bonusProduct?.qty ?? 1}
-            onChange={(e) =>
-              onChange({
-                code: bonusProduct?.code ?? "",
-                name: bonusProduct?.name ?? "",
-                unit: bonusProduct?.unit ?? "UN",
-                qty: Number(e.target.value),
-              })
-            }
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <Label className="text-sm">Productos Opcionales</Label>
-        <Button type="button" size="sm" variant="outline" onClick={() => setOptionalModalOpen(true)} className="gap-1.5">
-          <Plus /> Agregar producto opcional
-        </Button>
-      </div>
-
-      {optionalProducts.length > 0 && (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Producto</TableHead>
-                <TableHead>Unidad</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {optionalProducts.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-mono text-xs">{row.code}</TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{row.unit}</TableCell>
-                  <TableCell>{row.qty}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() =>
-                        onOptionalProductsChange(optionalProducts.filter((r) => r.id !== row.id))
-                      }
-                      aria-label="Eliminar"
-                    >
-                      <Trash2 className="text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      <OptionalProductDialog
-        open={optionalModalOpen}
-        onOpenChange={setOptionalModalOpen}
-        onAdd={(row) => onOptionalProductsChange([...optionalProducts, row])}
-      />
-    </div>
-  )
-}
-
-function OptionalProductDialog({
-  open,
-  onOpenChange,
-  onAdd,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onAdd: (row: OptionalProductRow) => void
-}) {
-  const [product, setProduct] = useState<{ code: string; name: string } | null>(null)
-  const [unit, setUnit] = useState("UN")
-  const [qty, setQty] = useState("1")
-
-  const canAdd = product !== null && Number(qty) > 0
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        onOpenChange(o)
-        if (!o) {
-          setProduct(null)
-          setUnit("UN")
-          setQty("1")
-        }
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Agregar producto opcional</DialogTitle>
-          <DialogDescription>
-            Equivalencia intercambiable por el producto de regalo.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Producto</Label>
-            <CatalogCombobox
-              items={PRODUCTS}
-              placeholder={product ? product.name : "Buscar producto…"}
-              onSelect={(item) => setProduct({ code: item.code, name: item.name })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Unidad de Medida</Label>
-              <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNITS.map((u) => (
-                    <SelectItem key={u.id} value={u.code}>
-                      {u.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Cantidad</Label>
-              <Input type="number" min={1} value={qty} onChange={(e) => setQty(e.target.value)} />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button
-            disabled={!canAdd}
-            onClick={() => {
-              if (!product) return
-              onAdd({
-                id: crypto.randomUUID(),
-                code: product.code,
-                name: product.name,
-                unit,
-                qty: Number(qty),
-              })
-              onOpenChange(false)
-            }}
-          >
-            Agregar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }

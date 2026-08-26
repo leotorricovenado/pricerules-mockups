@@ -8,6 +8,16 @@ export interface CatalogItem {
   name: string;
 }
 
+// La unidad de medida es un atributo propio del producto en el catálogo (viene del microservicio
+// Catálogo, CLAUDE.md §12) — no es algo que la regla de precio pueda elegir o editar.
+// `units` es la cadena de empaque del producto (de la más chica a la más grande, ej. Ketchup:
+// Display → Caja) — el resultado "Bonificación de Productos"/"Recargo por producto" sí deja
+// elegir en qué unidad de esa cadena se entrega/recarga, a diferencia de `unit` (fijo).
+export interface ProductCatalogItem extends CatalogItem {
+  unit: string;
+  units: string[];
+}
+
 export const DISTRIBUTORS: CatalogItem[] = [
   { id: 1, code: "DISCRUZ", name: "Distribuidora Santa Cruz" },
   { id: 2, code: "DISPAZ", name: "Distribuidora La Paz" },
@@ -114,21 +124,21 @@ export const DIVISIONS: CatalogItem[] = [
   { id: 3, code: "DIV-03", name: "División Bebidas" },
 ];
 
-export const PRODUCTS: CatalogItem[] = [
-  { id: 5001, code: "P-5001", name: "Ketchup Real 500ml" },
-  { id: 5002, code: "P-5002", name: "Mayonesa Real 500ml" },
-  { id: 5003, code: "P-5003", name: "Ketchup Kris 980g" },
-  { id: 5004, code: "P-5004", name: "Mayonesa Kris 980g" },
-  { id: 5005, code: "P-5005", name: "Mostaza/Ketchup Kris 485g" },
-  { id: 5006, code: "P-5006", name: "Detergente en Polvo Pulpin 150gr" },
-  { id: 5007, code: "P-5007", name: "Lavavajillas Pulpin 600ml" },
-  { id: 5008, code: "P-5008", name: "Vajillero Bristar Doypack 1L" },
-  { id: 5009, code: "P-5009", name: "Agua Speranza 2L" },
-  { id: 5010, code: "P-5010", name: "De La Granja Naranja 2L" },
-  { id: 5011, code: "P-5011", name: "Atún El Pescador" },
-  { id: 5012, code: "P-5012", name: "Levadura Fresca Ingavi 500gr" },
-  { id: 5013, code: "P-5013", name: "Aceite de Oliva 1000ml" },
-  { id: 5014, code: "P-5014", name: "Agua Speranza 600ml" },
+export const PRODUCTS: ProductCatalogItem[] = [
+  { id: 5001, code: "P-5001", name: "Ketchup Real 500ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
+  { id: 5002, code: "P-5002", name: "Mayonesa Real 500ml", unit: "POMO", units: ["DISPLAY", "CAJA"] },
+  { id: 5003, code: "P-5003", name: "Ketchup Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"] },
+  { id: 5004, code: "P-5004", name: "Mayonesa Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"] },
+  { id: 5005, code: "P-5005", name: "Mostaza/Ketchup Kris 485g", unit: "SOBRE", units: ["DISPLAY", "CAJA"] },
+  { id: 5006, code: "P-5006", name: "Detergente en Polvo Pulpin 150gr", unit: "BOLSA", units: ["PAQUETE", "CAJA"] },
+  { id: 5007, code: "P-5007", name: "Lavavajillas Pulpin 600ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
+  { id: 5008, code: "P-5008", name: "Vajillero Bristar Doypack 1L", unit: "DISPLAY", units: ["DISPLAY", "CAJA"] },
+  { id: 5009, code: "P-5009", name: "Agua Speranza 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
+  { id: 5010, code: "P-5010", name: "De La Granja Naranja 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
+  { id: 5011, code: "P-5011", name: "Atún El Pescador", unit: "LATA", units: ["DISPLAY", "CAJA"] },
+  { id: 5012, code: "P-5012", name: "Levadura Fresca Ingavi 500gr", unit: "PAQUETE", units: ["PAQUETE", "CAJA"] },
+  { id: 5013, code: "P-5013", name: "Aceite de Oliva 1000ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
+  { id: 5014, code: "P-5014", name: "Agua Speranza 600ml", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
 ];
 
 export const UNITS: CatalogItem[] = [

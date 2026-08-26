@@ -12,40 +12,55 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { ScaleRow, ScaleType } from "../types"
-import { SCALE_TYPE_LABELS } from "../labels"
+import type { OutcomeType, ScaleRow } from "../types"
+import { OUTCOME_TYPE_LABELS } from "../labels"
 
 // Sub-panel dinámico cuando Tipo de Regla = Escala. ESPECIFICACION-UI-CAPTURADA.md §2.
 // `findByOutputId()` no tiene ORDER BY (CLAUDE.md §8.4) — se agrega una advertencia inline
 // si el usuario carga escalas que se solapan, para no repetir ese defecto en el mockup.
+//
+// `requireValue=false` (Bonificación/Recargo): el resultado de cada escalón son los productos
+// cargados en el panel de arriba, no un monto — el campo/columna "Valor" no aplica y se oculta.
 export function ScaleEditor({
-  scaleType,
-  onScaleTypeChange,
   scales,
   onChange,
+  outcomeType,
+  requireValue = true,
 }: {
-  scaleType: ScaleType
-  onScaleTypeChange: (type: ScaleType) => void
   scales: ScaleRow[]
   onChange: (scales: ScaleRow[]) => void
+  outcomeType: OutcomeType
+  requireValue?: boolean
 }) {
-  const [from, setFrom] = useState("0")
+  const [firstFrom, setFirstFrom] = useState("0")
   const [to, setTo] = useState("")
   const [noLimit, setNoLimit] = useState(false)
   const [value, setValue] = useState("")
 
   const overlaps = hasOverlap(scales)
 
+  // El "Valor" es un porcentaje para Descuento %, pero Bs para Descuento por monto y Precio Fijo —
+  // sin la unidad al lado, "5" es ambiguo (¿5% o Bs 5?).
+  const valueLabel = outcomeType === "DISCOUNT_PERCENTAGE" ? "Valor (%)" : "Valor (Bs)"
+
+  // La próxima "Desde" continúa automáticamente donde terminó la última escala cargada — evita
+  // dejar huecos entre escalones. Solo el primer escalón (sin filas todavía) es editable.
+  const maxTo = scales.length > 0 ? Math.max(...scales.map((s) => s.to ?? s.from)) : null
+  const computedFrom = maxTo !== null ? maxTo + 1 : null
+  const fromValue = computedFrom !== null ? String(computedFrom) : firstFrom
+  const fromLocked = computedFrom !== null
+
   function addScale() {
-    const fromNum = Number(from)
+    const fromNum = Number(fromValue)
     const toNum = noLimit ? null : to === "" ? null : Number(to)
-    const valueNum = Number(value)
-    if (Number.isNaN(fromNum) || Number.isNaN(valueNum)) return
+    const valueNum = requireValue ? Number(value) : undefined
+    if (Number.isNaN(fromNum)) return
+    if (requireValue && Number.isNaN(valueNum)) return
     onChange([
       ...scales,
-      { id: crypto.randomUUID(), from: fromNum, to: toNum, value: valueNum },
+      { id: crypto.randomUUID(), from: fromNum, to: toNum, value: valueNum, outcomeType },
     ])
-    setFrom("0")
+    setFirstFrom("0")
     setTo("")
     setNoLimit(false)
     setValue("")
@@ -57,29 +72,17 @@ export function ScaleEditor({
 
   return (
     <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
-      <div className="grid grid-cols-2 gap-4 sm:max-w-xs">
-        <div className="space-y-1.5">
-          <Label>Tipo de Validación</Label>
-          <div className="flex gap-1">
-            {(["QUANTITY", "AMOUNT"] as ScaleType[]).map((t) => (
-              <Button
-                key={t}
-                type="button"
-                size="sm"
-                variant={scaleType === t ? "default" : "outline"}
-                onClick={() => onScaleTypeChange(t)}
-              >
-                {SCALE_TYPE_LABELS[t]}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:items-end">
+      <div className={`grid grid-cols-2 gap-3 sm:items-start ${requireValue ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         <div className="space-y-1.5">
           <Label htmlFor="scale-from">Desde</Label>
-          <Input id="scale-from" type="number" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <Input
+            id="scale-from"
+            type="number"
+            value={fromValue}
+            disabled={fromLocked}
+            className={fromLocked ? "bg-muted" : undefined}
+            onChange={(e) => setFirstFrom(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="scale-to">Hasta</Label>
@@ -101,13 +104,18 @@ export function ScaleEditor({
             </Label>
           </div>
         </div>
+        {requireValue && (
+          <div className="space-y-1.5">
+            <Label htmlFor="scale-value">{valueLabel}</Label>
+            <Input id="scale-value" type="number" value={value} onChange={(e) => setValue(e.target.value)} />
+          </div>
+        )}
         <div className="space-y-1.5">
-          <Label htmlFor="scale-value">Valor</Label>
-          <Input id="scale-value" type="number" value={value} onChange={(e) => setValue(e.target.value)} />
+          <Label className="invisible select-none">Acción</Label>
+          <Button type="button" onClick={addScale} className="w-full gap-1.5">
+            <Plus /> Adicionar Escala
+          </Button>
         </div>
-        <Button type="button" onClick={addScale} className="gap-1.5">
-          <Plus /> Adicionar Escala
-        </Button>
       </div>
 
       {overlaps && (
@@ -122,38 +130,45 @@ export function ScaleEditor({
       )}
 
       {scales.length > 0 && (
-        <div className="rounded-lg border bg-background">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Desde</TableHead>
-                <TableHead>Hasta</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...scales]
-                .sort((a, b) => a.from - b.from)
-                .map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell>{s.from}</TableCell>
-                    <TableCell>{s.to ?? "Sin límite"}</TableCell>
-                    <TableCell>{s.value}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => removeScale(s.id)}
-                        aria-label="Eliminar"
-                      >
-                        <Trash2 className="text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Lista de Escalas</Label>
+          <div className="rounded-lg border bg-background">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Desde</TableHead>
+                  <TableHead>Hasta</TableHead>
+                  {requireValue && <TableHead>{valueLabel}</TableHead>}
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="w-10" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...scales]
+                  .sort((a, b) => a.from - b.from)
+                  .map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell>{s.from}</TableCell>
+                      <TableCell>{s.to ?? "Sin límite"}</TableCell>
+                      {requireValue && <TableCell>{s.value ?? "—"}</TableCell>}
+                      <TableCell className="text-muted-foreground">
+                        {OUTCOME_TYPE_LABELS[s.outcomeType ?? outcomeType]}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => removeScale(s.id)}
+                          aria-label="Eliminar"
+                        >
+                          <Trash2 className="text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>
