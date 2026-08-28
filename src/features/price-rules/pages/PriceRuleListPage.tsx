@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import type { DateRange } from "react-day-picker"
 import {
   MoreHorizontal,
   Plus,
@@ -19,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { toISODate } from "@/lib/date"
 import {
   Select,
   SelectContent,
@@ -68,10 +71,6 @@ const EMPTY_FILTERS = {
   status: "ALL" as RuleStatus | "ALL",
   resolutionType: "ALL" as RuleType | "ALL",
   creator: "ALL",
-  startFrom: "",
-  startTo: "",
-  endFrom: "",
-  endTo: "",
 }
 
 // Paginación numerada tipo "‹ Anterior 1 2 3 … 11 Siguiente ›" — colapsa en "…" (no clickeable)
@@ -107,10 +106,8 @@ export function PriceRuleListPage() {
   const [status, setStatus] = useState(EMPTY_FILTERS.status)
   const [resolutionType, setResolutionType] = useState(EMPTY_FILTERS.resolutionType)
   const [creator, setCreator] = useState(EMPTY_FILTERS.creator)
-  const [startFrom, setStartFrom] = useState(EMPTY_FILTERS.startFrom)
-  const [startTo, setStartTo] = useState(EMPTY_FILTERS.startTo)
-  const [endFrom, setEndFrom] = useState(EMPTY_FILTERS.endFrom)
-  const [endTo, setEndTo] = useState(EMPTY_FILTERS.endTo)
+  const [startRange, setStartRange] = useState<DateRange | undefined>(undefined)
+  const [endRange, setEndRange] = useState<DateRange | undefined>(undefined)
 
   const [pageSize, setPageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
@@ -127,6 +124,11 @@ export function PriceRuleListPage() {
   )
 
   const filtered = useMemo(() => {
+    const startFromISO = toISODate(startRange?.from)
+    const startToISO = toISODate(startRange?.to ?? startRange?.from)
+    const endFromISO = toISODate(endRange?.from)
+    const endToISO = toISODate(endRange?.to ?? endRange?.from)
+
     return rules.filter((r) => {
       if (search && !r.name.toLowerCase().includes(search.toLowerCase()) && !String(r.id).includes(search)) {
         return false
@@ -136,25 +138,13 @@ export function PriceRuleListPage() {
       if (status !== "ALL" && r.status !== status) return false
       if (resolutionType !== "ALL" && r.ruleType !== resolutionType) return false
       if (creator !== "ALL" && r.createdBy !== creator) return false
-      if (startFrom && r.fromDate < startFrom) return false
-      if (startTo && r.fromDate > startTo) return false
-      if (endFrom && r.thruDate < endFrom) return false
-      if (endTo && r.thruDate > endTo) return false
+      if (startFromISO && r.fromDate < startFromISO) return false
+      if (startToISO && r.fromDate > startToISO) return false
+      if (endFromISO && r.thruDate < endFromISO) return false
+      if (endToISO && r.thruDate > endToISO) return false
       return true
     })
-  }, [
-    rules,
-    search,
-    company,
-    approval,
-    status,
-    resolutionType,
-    creator,
-    startFrom,
-    startTo,
-    endFrom,
-    endTo,
-  ])
+  }, [rules, search, company, approval, status, resolutionType, creator, startRange, endRange])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const page = Math.min(currentPage, totalPages)
@@ -172,10 +162,8 @@ export function PriceRuleListPage() {
     setStatus(EMPTY_FILTERS.status)
     setResolutionType(EMPTY_FILTERS.resolutionType)
     setCreator(EMPTY_FILTERS.creator)
-    setStartFrom(EMPTY_FILTERS.startFrom)
-    setStartTo(EMPTY_FILTERS.startTo)
-    setEndFrom(EMPTY_FILTERS.endFrom)
-    setEndTo(EMPTY_FILTERS.endTo)
+    setStartRange(undefined)
+    setEndRange(undefined)
     resetPage()
   }
 
@@ -332,51 +320,25 @@ export function PriceRuleListPage() {
           </div>
           <div className="space-y-1.5">
             <Label>Fecha Inicio</Label>
-            <div className="flex items-center gap-1.5">
-              <Input
-                type="date"
-                aria-label="Fecha Inicio: Desde"
-                value={startFrom}
-                onChange={(e) => {
-                  setStartFrom(e.target.value)
-                  resetPage()
-                }}
-              />
-              <span className="text-xs text-muted-foreground">–</span>
-              <Input
-                type="date"
-                aria-label="Fecha Inicio: Hasta"
-                value={startTo}
-                onChange={(e) => {
-                  setStartTo(e.target.value)
-                  resetPage()
-                }}
-              />
-            </div>
+            <DateRangePicker
+              value={startRange}
+              onChange={(range) => {
+                setStartRange(range)
+                resetPage()
+              }}
+              placeholder="Cualquier fecha"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Fecha Fin</Label>
-            <div className="flex items-center gap-1.5">
-              <Input
-                type="date"
-                aria-label="Fecha Fin: Desde"
-                value={endFrom}
-                onChange={(e) => {
-                  setEndFrom(e.target.value)
-                  resetPage()
-                }}
-              />
-              <span className="text-xs text-muted-foreground">–</span>
-              <Input
-                type="date"
-                aria-label="Fecha Fin: Hasta"
-                value={endTo}
-                onChange={(e) => {
-                  setEndTo(e.target.value)
-                  resetPage()
-                }}
-              />
-            </div>
+            <DateRangePicker
+              value={endRange}
+              onChange={(range) => {
+                setEndRange(range)
+                resetPage()
+              }}
+              placeholder="Cualquier fecha"
+            />
           </div>
         </div>
 

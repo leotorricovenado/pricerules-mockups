@@ -7,6 +7,12 @@ export interface ScreenContracts {
   externalRefIds: string[]
 }
 
+const DASHBOARD: ScreenContracts = {
+  title: "Dashboard",
+  contractIds: ["get-dashboard-summary", "get-dashboard-applications"],
+  externalRefIds: [],
+}
+
 const LIST: ScreenContracts = {
   title: "Listado de Reglas de Precio",
   contractIds: [
@@ -73,6 +79,7 @@ const FORM_EDIT: ScreenContracts = {
 
 // Coincide con las rutas declaradas en App.tsx.
 export function resolveScreenContracts(pathname: string): ScreenContracts | undefined {
+  if (pathname === "/dashboard") return DASHBOARD
   if (pathname === "/reglas-precio") return LIST
   if (pathname === "/reglas-precio/nueva") return FORM_CREATE
   if (/^\/reglas-precio\/[^/]+\/editar$/.test(pathname)) return FORM_EDIT
