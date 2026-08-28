@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, CheckCircle2, Copy, Pencil, Power, PowerOff } from "lucide-react"
+import { ArrowLeft, Ban, CheckCircle2, Copy, Pencil, Power, PowerOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -16,7 +16,9 @@ import { useAuth } from "@/app/auth"
 import { usePriceRules } from "../store"
 import { ApprovalStatusBadge, RuleStatusBadge } from "../components/RuleStatusBadge"
 import { ApprovalDialog } from "../components/ApprovalDialog"
+import { RejectApprovedDialog } from "../components/RejectApprovedDialog"
 import {
+  ACCUMULATION_SCOPE_LABELS,
   COMPANY_LABELS,
   CRITERIA_ELEMENT_LABELS,
   EXCLUSIVE_OUTCOME_LABELS,
@@ -30,7 +32,7 @@ import {
   formatDate,
   formatDateTime,
 } from "../labels"
-import { DISTRIBUTORS, ROLE_TYPES, WAREHOUSES, findById } from "../data/catalogs"
+import { DISTRIBUTORS, WAREHOUSES, findById } from "../data/catalogs"
 
 export function PriceRuleDetailPage() {
   const { id } = useParams()
@@ -39,6 +41,7 @@ export function PriceRuleDetailPage() {
   const { can } = useAuth()
   const rule = getRule(Number(id))
   const [approvalOpen, setApprovalOpen] = useState(false)
+  const [rejectApprovedOpen, setRejectApprovedOpen] = useState(false)
 
   if (!rule) {
     return (
@@ -88,6 +91,15 @@ export function PriceRuleDetailPage() {
           {can("price_rules.approve") && rule.approvalStatus === "WAITING_COMMERCIAL_APPROVAL" && (
             <Button variant="outline" className="gap-1.5" onClick={() => setApprovalOpen(true)}>
               <CheckCircle2 /> Aprobar / Rechazar
+            </Button>
+          )}
+          {can("price_rules.reject_approved") && rule.approvalStatus === "APPROVED" && (
+            <Button
+              variant="outline"
+              className="gap-1.5 text-destructive hover:text-destructive"
+              onClick={() => setRejectApprovedOpen(true)}
+            >
+              <Ban /> Rechazar (ya aprobada)
             </Button>
           )}
           {can("price_rules.toggle_status") && rule.approvalStatus === "APPROVED" && (
@@ -162,17 +174,6 @@ export function PriceRuleDetailPage() {
                     .join(", ")
             }
           />
-          <Field
-            label="Roles"
-            value={
-              rule.roleTypes.length === 0
-                ? "Todos"
-                : rule.roleTypes
-                    .map((code) => ROLE_TYPES.find((r) => r.code === code)?.name)
-                    .filter(Boolean)
-                    .join(", ")
-            }
-          />
           <Field label="Condición de Pago" value={PAYMENT_CONDITION_LABELS[rule.paymentCondition]} />
         </dl>
       </Card>
@@ -185,6 +186,7 @@ export function PriceRuleDetailPage() {
           rows={rule.criteriaRows}
           typeLabel={(t) => CRITERIA_ELEMENT_LABELS[t as keyof typeof CRITERIA_ELEMENT_LABELS]}
           emptyText="Universal — sin restricción, aplica a todos."
+          showSaleChannel={rule.criteriaRows[0]?.type === "RUTA"}
         />
       </Card>
 
@@ -194,16 +196,13 @@ export function PriceRuleDetailPage() {
         </h2>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
           <Field label="Tipo de Resolución" value={RULE_TYPE_LABELS[rule.ruleType]} />
-          <Field
-            label="Usar valor de compra actual"
-            value={rule.useSaleOrderTotalForOutcome ? "Sí" : "No"}
-          />
         </dl>
         <RowsTable
           rows={rule.specificRows}
           typeLabel={(t) => SPECIFIC_ELEMENT_LABELS[t as keyof typeof SPECIFIC_ELEMENT_LABELS]}
           emptyText="Universal — sin restricción, aplica a todos los productos."
           showUnit
+          showRequiredQty={rule.ruleType === "RESTRICTED_QUANTITY"}
         />
       </Card>
 
@@ -224,6 +223,39 @@ export function PriceRuleDetailPage() {
             <Field label="Tipo de Validación" value={SCALE_TYPE_LABELS[rule.scaleType ?? "QUANTITY"]} />
           )}
         </dl>
+
+        {rule.outcomeMode === "ACCUMULATED" && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                El acumulado se calcula por Dueño — suma las compras de todos los pedidos de ese
+                Dueño en el período.
+              </p>
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+                <Field
+                  label="Se acumula"
+                  value={
+                    ACCUMULATION_SCOPE_LABELS[rule.accumulationScope ?? "TOTAL"] +
+                    (rule.accumulationScopeRef ? ` — ${rule.accumulationScopeRef.name}` : "")
+                  }
+                />
+                <Field
+                  label="Ventana de tiempo"
+                  value={
+                    rule.accumulationFromDate && rule.accumulationToDate
+                      ? `${formatDate(rule.accumulationFromDate)} – ${formatDate(rule.accumulationToDate)}`
+                      : "—"
+                  }
+                />
+                <Field
+                  label="Monto Umbral"
+                  value={rule.accumulationThreshold ? `Bs ${rule.accumulationThreshold}` : "—"}
+                />
+              </dl>
+            </div>
+          </>
+        )}
 
         {rule.outcomeMode === "SCALE" && rule.scales && rule.scales.length > 0 && (
           <div className="rounded-lg border">
@@ -359,6 +391,16 @@ export function PriceRuleDetailPage() {
           setApprovalOpen(false)
         }}
       />
+
+      <RejectApprovedDialog
+        rule={rule}
+        open={rejectApprovedOpen}
+        onOpenChange={setRejectApprovedOpen}
+        onConfirm={() => {
+          rejectRule(rule.id)
+          setRejectApprovedOpen(false)
+        }}
+      />
     </div>
   )
 }
@@ -377,11 +419,23 @@ function RowsTable({
   typeLabel,
   emptyText,
   showUnit,
+  showSaleChannel,
+  showRequiredQty,
 }: {
-  rows: { id: string; type: string; code: string; name: string; unit?: string }[]
+  rows: {
+    id: string
+    type: string
+    code: string
+    name: string
+    unit?: string
+    saleChannelName?: string
+    requiredQty?: number
+  }[]
   typeLabel: (type: string) => string
   emptyText: string
   showUnit?: boolean
+  showSaleChannel?: boolean
+  showRequiredQty?: boolean
 }) {
   if (rows.length === 0) {
     return <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">{emptyText}</p>
@@ -395,6 +449,8 @@ function RowsTable({
             <TableHead>Código</TableHead>
             <TableHead>Nombre</TableHead>
             {showUnit && <TableHead>Unidad</TableHead>}
+            {showSaleChannel && <TableHead>Canal de Venta</TableHead>}
+            {showRequiredQty && <TableHead>Cantidad Requerida</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -404,6 +460,10 @@ function RowsTable({
               <TableCell className="font-mono text-xs">{row.code}</TableCell>
               <TableCell>{row.name}</TableCell>
               {showUnit && <TableCell className="text-muted-foreground">{row.unit ?? "—"}</TableCell>}
+              {showSaleChannel && (
+                <TableCell className="text-muted-foreground">{row.saleChannelName ?? "—"}</TableCell>
+              )}
+              {showRequiredQty && <TableCell>{row.requiredQty ?? "—"}</TableCell>}
             </TableRow>
           ))}
         </TableBody>

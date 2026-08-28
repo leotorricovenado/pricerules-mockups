@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { CatalogCombobox } from "./CatalogCombobox"
+import { SALE_CHANNELS } from "../data/catalogs"
 import type { CatalogItem, ProductCatalogItem } from "../data/catalogs"
 import type { CriteriaElementType, CriteriaRow, SpecificElementType, SpecificRow } from "../types"
 
@@ -46,11 +47,29 @@ export function CriteriaRowsPanel({
   const config = elements.find((e) => e.value === activeType)
   const locked = rows.length > 0
 
+  // Ruta exige elegir también un Canal de Venta (acordado en la reunión del 2026-08-27, CLAUDE.md
+  // §21) — una ruta por sí sola es ambigua entre canales. Se guarda junto a la fila, no aparte.
+  const [pendingSaleChannel, setPendingSaleChannel] = useState<CatalogItem | null>(null)
+
   function addRow(item: CatalogItem) {
+    if (activeType === "RUTA" && !pendingSaleChannel) return
     onChange([
       ...rows,
-      { id: crypto.randomUUID(), type: activeType, code: item.code, name: item.name },
+      {
+        id: crypto.randomUUID(),
+        type: activeType,
+        code: item.code,
+        name: item.name,
+        ...(activeType === "RUTA" && pendingSaleChannel
+          ? {
+              saleChannelId: pendingSaleChannel.id,
+              saleChannelCode: pendingSaleChannel.code,
+              saleChannelName: pendingSaleChannel.name,
+            }
+          : {}),
+      },
     ])
+    setPendingSaleChannel(null)
   }
 
   function removeRow(id: string) {
@@ -67,7 +86,10 @@ export function CriteriaRowsPanel({
           <Select
             value={activeType}
             disabled={locked}
-            onValueChange={(v) => setSelectedType(v as CriteriaElementType)}
+            onValueChange={(v) => {
+              setSelectedType(v as CriteriaElementType)
+              setPendingSaleChannel(null)
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -104,11 +126,41 @@ export function CriteriaRowsPanel({
             </p>
           ) : (
             <div className="flex gap-2">
-              <div className="flex-1">
+              {activeType === "RUTA" && (
+                <div className="w-56 space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Canal de Venta</Label>
+                  <Select
+                    value={pendingSaleChannel?.code ?? ""}
+                    onValueChange={(v) =>
+                      setPendingSaleChannel(SALE_CHANNELS.find((c) => c.code === v) ?? null)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Elegí un canal…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SALE_CHANNELS.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="flex-1 space-y-1.5">
+                {activeType === "RUTA" && (
+                  <Label className="invisible text-xs text-muted-foreground select-none">Ruta</Label>
+                )}
                 <CatalogCombobox
                   items={config?.catalog ?? []}
                   onSelect={addRow}
-                  placeholder={`Buscar ${config?.label.toLowerCase() ?? ""}…`}
+                  disabled={activeType === "RUTA" && !pendingSaleChannel}
+                  placeholder={
+                    activeType === "RUTA" && !pendingSaleChannel
+                      ? "Elegí primero un Canal de Venta…"
+                      : `Buscar ${config?.label.toLowerCase() ?? ""}…`
+                  }
                 />
               </div>
             </div>
@@ -122,6 +174,7 @@ export function CriteriaRowsPanel({
                     <TableHead>Tipo</TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Nombre</TableHead>
+                    {activeType === "RUTA" && <TableHead>Canal de Venta</TableHead>}
                     <TableHead className="w-10" />
                   </TableRow>
                 </TableHeader>
@@ -133,6 +186,11 @@ export function CriteriaRowsPanel({
                       </TableCell>
                       <TableCell className="font-mono text-xs">{row.code}</TableCell>
                       <TableCell>{row.name}</TableCell>
+                      {activeType === "RUTA" && (
+                        <TableCell className="text-muted-foreground">
+                          {row.saleChannelName ?? "—"}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -160,10 +218,14 @@ export function SpecificRowsPanel({
   rows,
   onChange,
   elements,
+  requireQty = false,
 }: {
   rows: SpecificRow[]
   onChange: (rows: SpecificRow[]) => void
   elements: ElementConfig<SpecificElementType>[]
+  // Tipo de Resolución "Restrictivo por Cantidad" (§21) — cada fila Producto exige además una
+  // cantidad mínima propia, no solo su presencia en el pedido.
+  requireQty?: boolean
 }) {
   const [selectedType, setSelectedType] = useState<SpecificElementType>("UNIVERSAL")
   const activeType = rows.length > 0 ? rows[0].type : selectedType
@@ -173,6 +235,7 @@ export function SpecificRowsPanel({
   // Producto pasa por un paso intermedio: al elegirlo se muestra su Unidad de Medida real (viene
   // del catálogo, no se puede tocar) y recién con "Adicionar" se agrega la fila — igual que el JSF viejo.
   const [pendingProduct, setPendingProduct] = useState<ProductCatalogItem | null>(null)
+  const [pendingQty, setPendingQty] = useState("")
 
   function addRow(item: CatalogItem) {
     if (activeType === "PRODUCTO") {
@@ -187,6 +250,7 @@ export function SpecificRowsPanel({
 
   function confirmAddProduct() {
     if (!pendingProduct) return
+    if (requireQty && (!pendingQty || Number(pendingQty) <= 0)) return
     onChange([
       ...rows,
       {
@@ -195,9 +259,11 @@ export function SpecificRowsPanel({
         code: pendingProduct.code,
         name: pendingProduct.name,
         unit: pendingProduct.unit,
+        ...(requireQty ? { requiredQty: Number(pendingQty) } : {}),
       },
     ])
     setPendingProduct(null)
+    setPendingQty("")
   }
 
   function removeRow(id: string) {
@@ -262,7 +328,23 @@ export function SpecificRowsPanel({
                 <Label>Unidad de Medida</Label>
                 <Input value={pendingProduct.unit} disabled className="bg-muted" />
               </div>
-              <Button type="button" onClick={confirmAddProduct} className="gap-1.5">
+              {requireQty && (
+                <div className="w-32 space-y-1.5">
+                  <Label>Cantidad Requerida</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={pendingQty}
+                    onChange={(e) => setPendingQty(e.target.value)}
+                  />
+                </div>
+              )}
+              <Button
+                type="button"
+                onClick={confirmAddProduct}
+                disabled={requireQty && (!pendingQty || Number(pendingQty) <= 0)}
+                className="gap-1.5"
+              >
                 <Plus /> Adicionar
               </Button>
             </div>
@@ -277,6 +359,7 @@ export function SpecificRowsPanel({
                     <TableHead>Código</TableHead>
                     <TableHead>Producto / Valor</TableHead>
                     <TableHead>Unidad de Medida</TableHead>
+                    {requireQty && <TableHead>Cantidad Requerida</TableHead>}
                     <TableHead className="w-10" />
                   </TableRow>
                 </TableHeader>
@@ -289,6 +372,7 @@ export function SpecificRowsPanel({
                       <TableCell className="font-mono text-xs">{row.code}</TableCell>
                       <TableCell>{row.name}</TableCell>
                       <TableCell className="text-muted-foreground">{row.unit ?? "—"}</TableCell>
+                      {requireQty && <TableCell>{row.requiredQty ?? "—"}</TableCell>}
                       <TableCell>
                         <Button
                           variant="ghost"

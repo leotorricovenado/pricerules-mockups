@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Tag } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { ApiContractsPanel } from "@/components/dev/ApiContractsPanel";
 import { UserSwitcher } from "./UserSwitcher";
 
 // Shell mínimo — el mockup de app shell completo (login/MFA/RBAC/sesión) queda fuera de este
@@ -38,6 +39,7 @@ export function AppLayout() {
       <main className="mx-auto max-w-[1300px] px-6 py-8">
         <Outlet />
       </main>
+      <ApiContractsPanel />
     </div>
   );
 }

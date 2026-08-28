@@ -14,6 +14,7 @@ import {
   ChevronRight,
   FilterX,
   Upload,
+  Ban,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -45,16 +46,17 @@ import { useAuth } from "@/app/auth"
 import { usePriceRules } from "../store"
 import { ApprovalStatusBadge, StatusDot } from "../components/RuleStatusBadge"
 import { ApprovalDialog } from "../components/ApprovalDialog"
+import { RejectApprovedDialog } from "../components/RejectApprovedDialog"
 import { BulkUploadDialog } from "../components/BulkUploadDialog"
 import {
   COMPANY_LABELS,
   OUTCOME_MODE_LABELS,
   OUTCOME_TYPE_LABELS,
   RULE_TYPE_LABELS,
+  formatCreatorName,
   formatDate,
   formatDateTime,
 } from "../labels"
-import { SALE_CHANNELS } from "../data/catalogs"
 import type { ApprovalStatus, Company, PriceRule, RuleStatus, RuleType } from "../types"
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
@@ -65,7 +67,7 @@ const EMPTY_FILTERS = {
   approval: "ALL" as ApprovalStatus | "ALL",
   status: "ALL" as RuleStatus | "ALL",
   resolutionType: "ALL" as RuleType | "ALL",
-  channel: "ALL",
+  creator: "ALL",
   startFrom: "",
   startTo: "",
   endFrom: "",
@@ -104,7 +106,7 @@ export function PriceRuleListPage() {
   const [approval, setApproval] = useState(EMPTY_FILTERS.approval)
   const [status, setStatus] = useState(EMPTY_FILTERS.status)
   const [resolutionType, setResolutionType] = useState(EMPTY_FILTERS.resolutionType)
-  const [channel, setChannel] = useState(EMPTY_FILTERS.channel)
+  const [creator, setCreator] = useState(EMPTY_FILTERS.creator)
   const [startFrom, setStartFrom] = useState(EMPTY_FILTERS.startFrom)
   const [startTo, setStartTo] = useState(EMPTY_FILTERS.startTo)
   const [endFrom, setEndFrom] = useState(EMPTY_FILTERS.endFrom)
@@ -114,7 +116,15 @@ export function PriceRuleListPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const [approvalTarget, setApprovalTarget] = useState<PriceRule | null>(null)
+  const [rejectApprovedTarget, setRejectApprovedTarget] = useState<PriceRule | null>(null)
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
+
+  // Deriva las opciones del filtro "Creador de Regla" de las reglas existentes — no hay un
+  // servicio de usuarios en el mockup (§21, admin acordó agregarlo en la reunión del 2026-08-27).
+  const creators = useMemo(
+    () => Array.from(new Set(rules.map((r) => r.createdBy))).sort(),
+    [rules]
+  )
 
   const filtered = useMemo(() => {
     return rules.filter((r) => {
@@ -125,9 +135,7 @@ export function PriceRuleListPage() {
       if (approval !== "ALL" && r.approvalStatus !== approval) return false
       if (status !== "ALL" && r.status !== status) return false
       if (resolutionType !== "ALL" && r.ruleType !== resolutionType) return false
-      if (channel !== "ALL" && !r.criteriaRows.some((row) => row.type === "CANAL_VENTA" && row.code === channel)) {
-        return false
-      }
+      if (creator !== "ALL" && r.createdBy !== creator) return false
       if (startFrom && r.fromDate < startFrom) return false
       if (startTo && r.fromDate > startTo) return false
       if (endFrom && r.thruDate < endFrom) return false
@@ -141,7 +149,7 @@ export function PriceRuleListPage() {
     approval,
     status,
     resolutionType,
-    channel,
+    creator,
     startFrom,
     startTo,
     endFrom,
@@ -163,7 +171,7 @@ export function PriceRuleListPage() {
     setApproval(EMPTY_FILTERS.approval)
     setStatus(EMPTY_FILTERS.status)
     setResolutionType(EMPTY_FILTERS.resolutionType)
-    setChannel(EMPTY_FILTERS.channel)
+    setCreator(EMPTY_FILTERS.creator)
     setStartFrom(EMPTY_FILTERS.startFrom)
     setStartTo(EMPTY_FILTERS.startTo)
     setEndFrom(EMPTY_FILTERS.endFrom)
@@ -301,11 +309,11 @@ export function PriceRuleListPage() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Canal</Label>
+            <Label>Creador de Regla</Label>
             <Select
-              value={channel}
+              value={creator}
               onValueChange={(v) => {
-                setChannel(v)
+                setCreator(v)
                 resetPage()
               }}
             >
@@ -314,9 +322,9 @@ export function PriceRuleListPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Todos</SelectItem>
-                {SALE_CHANNELS.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>
-                    {c.name}
+                {creators.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {formatCreatorName(c)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -491,6 +499,14 @@ export function PriceRuleListPage() {
                           <CheckCircle2 /> Aprobar / Rechazar
                         </DropdownMenuItem>
                       )}
+                      {can("price_rules.reject_approved") && r.approvalStatus === "APPROVED" && (
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => setRejectApprovedTarget(r)}
+                        >
+                          <Ban /> Rechazar (ya aprobada)
+                        </DropdownMenuItem>
+                      )}
                       {can("price_rules.toggle_status") && (
                         <>
                           <DropdownMenuSeparator />
@@ -571,6 +587,16 @@ export function PriceRuleListPage() {
         onReject={() => {
           if (approvalTarget) rejectRule(approvalTarget.id)
           setApprovalTarget(null)
+        }}
+      />
+
+      <RejectApprovedDialog
+        rule={rejectApprovedTarget}
+        open={rejectApprovedTarget !== null}
+        onOpenChange={(o) => !o && setRejectApprovedTarget(null)}
+        onConfirm={() => {
+          if (rejectApprovedTarget) rejectRule(rejectApprovedTarget.id)
+          setRejectApprovedTarget(null)
         }}
       />
 

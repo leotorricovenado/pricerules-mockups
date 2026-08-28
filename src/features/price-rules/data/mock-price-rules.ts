@@ -2,9 +2,9 @@ import type { PriceRule } from "../types"
 import { VENADO_PRICE_RULES } from "./venado-price-rules"
 
 // 7 ejemplos armados a mano para cubrir combinaciones que el import real (ver venado-price-rules.ts)
-// no ejercita: outcomeMode SCALE, FIXED_PRICE, PRODUCT_SURCHARGE, warehouseIds/roleTypes,
-// optionalProducts, useSaleOrderTotalForOutcome. Usan las marcas y productos reales de Grupo
-// Venado (catalogs.ts) — nada de cerveza, Grupo Venado no vende eso.
+// no ejercita: outcomeMode SCALE, FIXED_PRICE, PRODUCT_SURCHARGE, warehouseIds, optionalProducts.
+// Usan las marcas y productos reales de Grupo Venado (catalogs.ts) — nada de cerveza, Grupo Venado
+// no vende eso.
 const HAND_CRAFTED_RULES: PriceRule[] = [
   {
     id: 4821,
@@ -20,10 +20,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [1, 3],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "TODOS",
     criteriaRows: [{ id: "c1", type: "CANAL_VENTA", code: "CAN-MOD", name: "Canal Moderno" }],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "RESTRICTED",
     specificRows: [{ id: "s1", type: "MARCA", code: "MARCA-04", name: "Kris" }],
     target: "PRODUCT",
@@ -52,10 +50,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "OUTCOME_TYPE",
     distributorIds: [1, 2, 3, 4],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "TODOS",
     criteriaRows: [],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "GENERAL",
     specificRows: [{ id: "s1", type: "PRODUCTO", code: "P-5009", name: "Agua Speranza 2L" }],
     target: "PRODUCT",
@@ -81,10 +77,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [1],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "CASH",
     criteriaRows: [{ id: "c1", type: "CLIENTE", code: "134125", name: "Comercial Rojas SRL" }],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "RESTRICTED",
     specificRows: [{ id: "s1", type: "PRODUCTO", code: "P-5001", name: "Ketchup Real 500ml" }],
     target: "PRODUCT",
@@ -108,10 +102,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [1],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "CASH",
     criteriaRows: [{ id: "c1", type: "SECTOR", code: "SEC-CENTRO", name: "Sector Centro" }],
-    useSaleOrderTotalForOutcome: true,
     ruleType: "GENERAL",
     specificRows: [],
     target: "SALE_ORDER",
@@ -135,10 +127,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [9, 15, 16],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "TODOS",
     criteriaRows: [{ id: "c1", type: "RUTA", code: "RUTA-03", name: "Ruta 03 — Zona Sur" }],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "RESTRICTED",
     specificRows: [{ id: "s1", type: "CATEGORIA", code: "CAT-03", name: "Bebidas" }],
     target: "PRODUCT",
@@ -162,10 +152,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [1, 2, 3, 4, 6, 7, 8, 9, 10, 15, 16],
     warehouseIds: [],
-    roleTypes: ["SELLER"],
     paymentCondition: "TODOS",
     criteriaRows: [],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "RESTRICTED",
     specificRows: [{ id: "s1", type: "CATEGORIA", code: "CAT-01", name: "Salsas y Aderezos" }],
     target: "PRODUCT",
@@ -194,10 +182,8 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     exclusiveOutcome: "NONE",
     distributorIds: [2, 10],
     warehouseIds: [],
-    roleTypes: [],
     paymentCondition: "TODOS",
     criteriaRows: [{ id: "c1", type: "PROPIETARIO", code: "OWN-03", name: "Franquicia Norte" }],
-    useSaleOrderTotalForOutcome: false,
     ruleType: "GENERAL",
     specificRows: [],
     target: "SALE_ORDER",
@@ -206,6 +192,41 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     createdBy: "genaro.valverde",
     createdAt: "2025-12-15T11:00:00",
     updatedAt: "2026-06-28T10:00:00",
+  },
+  // Ejemplo de outcomeMode "ACCUMULATED" — propuesta nueva de la reunión del 2026-08-27
+  // (CLAUDE.md §23), sin equivalente en el motor legacy. accumulationScope/accumulationScopeRef
+  // (sobre qué se ACUMULA el histórico) y specificRows (sobre qué producto aplica el RESULTADO)
+  // son campos independientes — acá coinciden en la misma marca a propósito, para que el ejemplo
+  // sea legible, pero no tienen por qué coincidir siempre.
+  {
+    id: 4827,
+    company: "VEMASSA",
+    name: "Descuento por acumulado — Dueño Franquicia Sur, línea Kris",
+    description: "2% de descuento cuando el Dueño supera Bs 25.000 en compras de Kris durante agosto.",
+    fromDate: "2026-07-01",
+    thruDate: "2026-12-31",
+    outcomeMode: "ACCUMULATED",
+    applyOnlyOnce: false,
+    status: "ENABLE",
+    approvalStatus: "APPROVED",
+    exclusiveOutcome: "OUTCOME_TYPE",
+    distributorIds: [],
+    warehouseIds: [],
+    paymentCondition: "TODOS",
+    criteriaRows: [{ id: "c1", type: "PROPIETARIO", code: "OWN-02", name: "Franquicia Sur" }],
+    ruleType: "GENERAL",
+    specificRows: [{ id: "s1", type: "MARCA", code: "MARCA-04", name: "Kris" }],
+    target: "PRODUCT",
+    outcomeType: "DISCOUNT_PERCENTAGE",
+    value: 2,
+    accumulationScope: "MARCA",
+    accumulationScopeRef: { code: "MARCA-04", name: "Kris" },
+    accumulationFromDate: "2026-08-01",
+    accumulationToDate: "2026-08-31",
+    accumulationThreshold: 25000,
+    createdBy: "cecilia.viera",
+    createdAt: "2026-08-27T09:00:00",
+    updatedAt: "2026-08-27T09:00:00",
   },
 ]
 

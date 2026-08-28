@@ -19,10 +19,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -46,10 +44,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -78,10 +74,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -110,10 +104,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -144,10 +136,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -171,10 +161,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -198,10 +186,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -230,10 +216,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -262,10 +246,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -289,10 +271,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "RESTRICTED",
     "specificRows": [],
     "target": "PRODUCT",
@@ -321,10 +301,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -353,10 +331,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -385,10 +361,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -417,10 +391,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -451,10 +423,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -478,10 +448,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -505,10 +473,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -537,10 +503,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -572,10 +536,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -612,7 +574,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -622,7 +583,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Rinconada SRL"
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -652,7 +612,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -662,7 +621,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Rinconada SRL"
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -699,7 +657,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -709,7 +666,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Rinconada SRL"
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -739,7 +695,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -749,7 +704,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Rinconada SRL"
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -781,10 +735,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -814,10 +766,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -847,10 +797,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -880,10 +828,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -913,10 +859,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -946,10 +890,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -986,10 +928,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1026,10 +966,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1059,10 +997,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1099,10 +1035,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1141,10 +1075,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1168,10 +1100,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1208,10 +1138,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1242,10 +1170,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1271,10 +1197,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       4
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1307,10 +1231,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1340,10 +1262,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1382,10 +1302,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1424,10 +1342,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1459,10 +1375,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1501,10 +1415,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1543,10 +1455,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       10
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1585,10 +1495,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       10
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1625,10 +1533,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1665,10 +1571,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -1692,10 +1596,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1734,10 +1636,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1776,10 +1676,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1818,10 +1716,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1860,10 +1756,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1902,10 +1796,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1944,10 +1836,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -1986,10 +1876,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2028,10 +1916,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2070,10 +1956,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2112,10 +1996,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2154,10 +2036,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2196,10 +2076,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2238,10 +2116,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2280,10 +2156,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2322,10 +2196,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2364,10 +2236,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2406,10 +2276,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2448,10 +2316,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2490,10 +2356,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2525,10 +2389,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2565,10 +2427,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2594,10 +2454,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       10
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2629,10 +2487,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       10
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "RESTRICTED",
     "specificRows": [
       {
@@ -2671,10 +2527,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2706,10 +2560,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2735,10 +2587,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2764,10 +2614,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       4
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2806,10 +2654,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2846,10 +2692,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -2886,10 +2730,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2913,10 +2755,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2942,7 +2782,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       2
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -2952,7 +2791,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Hipermaxi S.A."
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -2976,7 +2814,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [
       {
@@ -2986,7 +2823,6 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
         "name": "Tresbede"
       }
     ],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3012,10 +2848,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3041,10 +2875,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3083,10 +2915,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3125,10 +2955,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3167,10 +2995,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3209,10 +3035,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3251,10 +3075,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3293,10 +3115,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3328,10 +3148,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3370,10 +3188,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3412,10 +3228,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3454,10 +3268,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3496,10 +3308,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3529,10 +3339,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {
@@ -3569,10 +3377,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3604,10 +3410,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       3
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3631,10 +3435,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
     "exclusiveOutcome": "NONE",
     "distributorIds": [],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [],
     "target": "PRODUCT",
@@ -3666,10 +3468,8 @@ export const VENADO_PRICE_RULES: PriceRule[] = [
       1
     ],
     "warehouseIds": [],
-    "roleTypes": [],
     "paymentCondition": "TODOS",
     "criteriaRows": [],
-    "useSaleOrderTotalForOutcome": false,
     "ruleType": "GENERAL",
     "specificRows": [
       {

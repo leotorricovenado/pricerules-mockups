@@ -25,11 +25,12 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/app/auth"
 import { usePriceRules } from "../store"
-import { CatalogMultiSelect } from "../components/CatalogCombobox"
+import { CatalogCombobox, CatalogMultiSelect } from "../components/CatalogCombobox"
 import { CriteriaRowsPanel, SpecificRowsPanel } from "../components/CriteriaRowsPanel"
 import { ScaleEditor } from "../components/ScaleEditor"
 import { OutcomeProductsPanel } from "../components/OutcomeProductsPanel"
 import {
+  ACCUMULATION_SCOPE_LABELS,
   COMPANY_LABELS,
   EXCLUSIVE_OUTCOME_LABELS,
   OUTCOME_TYPE_LABELS,
@@ -55,6 +56,7 @@ import {
   SALE_CHANNELS,
   SECTORS,
   ROUTES,
+  SELLERS,
   DIVISIONS,
   BRANDS,
   CATEGORIES,
@@ -62,22 +64,43 @@ import {
   SUB_FAMILIES,
   PRODUCTS,
   WAREHOUSES,
-  ROLE_TYPES,
 } from "../data/catalogs"
 
 const OUTCOME_MODES: { value: OutcomeMode; label: string; hint: string }[] = [
   { value: "SINGLE", label: "Tradicional", hint: "Un solo valor de resultado." },
   { value: "SCALE", label: "Escala", hint: "El resultado depende de un rango (cantidad o monto)." },
   { value: "FREQUENCY", label: "Frecuencia", hint: "El resultado se repite cada N unidades/monto." },
+  {
+    value: "ACCUMULATED",
+    label: "Acumulado",
+    hint: "El resultado se activa cuando el Dueño supera un monto acumulado de compras.",
+  },
 ]
 
-// Precio Fijo no aplica a Frecuencia — el motor no lo soporta (§ CLAUDE.md 8, PRICING_* de prod).
-const FREQUENCY_ALLOWED_TYPES: OutcomeType[] = [
-  "DISCOUNT_PERCENTAGE",
-  "DISCOUNT_AMOUNT",
-  "PRODUCT",
-  "PRODUCT_SURCHARGE",
-]
+// Acordado en la reunión del 2026-08-27 (CLAUDE.md §21/§22). Dos capas:
+// 1) "Dscto. sobre el monto" y "Precio Fijo" dejan de ofrecerse para reglas NUEVAS en cualquier modo.
+// 2) Qué Tipo de Resultado combina con qué Tipo de Regla quedó acotado por una regla de negocio
+//    nueva (§22): Frecuencia — "bonificación" en la jerga de Comercial, su único uso real hoy es el
+//    3x2 (ver rule #4822) — solo admite Bonificación de Productos. Escala admite Bonificación de
+//    Productos y Descuento %. Tradicional admite Bonificación de Productos y Recargo por producto.
+//    Reglas existentes con cualquiera de estos tipos (import histórico, data/venado-price-rules.ts)
+//    se siguen mostrando normalmente en detalle/listado — esto solo filtra las opciones del combo
+//    de creación/edición.
+// 3) Acumulado (CLAUDE.md §23, propuesta nueva sin precedente en el motor legacy) se asume con los
+//    mismos permisos que Escala, a confirmar con Comercial.
+const OUTCOME_MODE_ALLOWED_TYPES: Record<OutcomeMode, OutcomeType[]> = {
+  SINGLE: ["PRODUCT", "PRODUCT_SURCHARGE"],
+  FREQUENCY: ["PRODUCT"],
+  SCALE: ["PRODUCT", "DISCOUNT_PERCENTAGE"],
+  ACCUMULATED: ["PRODUCT", "DISCOUNT_PERCENTAGE"],
+}
+
+const ACCUMULATION_SCOPE_CATALOGS = {
+  MARCA: BRANDS,
+  FAMILIA: FAMILIES,
+  CATEGORIA: CATEGORIES,
+  PRODUCTO: PRODUCTS,
+} as const
 
 const VALUE_INPUT_LABELS: Record<OutcomeType, string> = {
   DISCOUNT_PERCENTAGE: "Porcentaje de Descuento (%)",
@@ -93,6 +116,7 @@ const CRITERIA_ELEMENTS = [
   { value: "CANAL_VENTA" as const, label: "Canal de venta", catalog: SALE_CHANNELS },
   { value: "SECTOR" as const, label: "Sector", catalog: SECTORS },
   { value: "RUTA" as const, label: "Ruta", catalog: ROUTES },
+  { value: "VENDEDOR" as const, label: "Vendedor", catalog: SELLERS },
 ]
 
 const SPECIFIC_ELEMENTS = [
@@ -301,10 +325,11 @@ function PriceRuleFormInner() {
                 type="button"
                 onClick={() => {
                   set("outcomeMode", m.value)
-                  // Precio Fijo no existe para Frecuencia (el motor no lo soporta) — si estaba
-                  // elegido, se cae a Descuento % para no dejar un Tipo de Resultado inválido.
-                  if (m.value === "FREQUENCY" && data.outcomeType === "FIXED_PRICE") {
-                    set("outcomeType", "DISCOUNT_PERCENTAGE")
+                  // Si el Tipo de Resultado actual ya no es válido para el nuevo Tipo de Regla
+                  // (§22), se cae al primero permitido (siempre Bonificación de Productos) para no
+                  // dejar una combinación inválida.
+                  if (!OUTCOME_MODE_ALLOWED_TYPES[m.value].includes(data.outcomeType)) {
+                    set("outcomeType", OUTCOME_MODE_ALLOWED_TYPES[m.value][0])
                   }
                 }}
                 className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
@@ -355,16 +380,6 @@ function PriceRuleFormInner() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Roles</Label>
-            <CatalogMultiSelect
-              items={ROLE_TYPES}
-              selectedIds={data.roleTypes}
-              onChange={(codes) => set("roleTypes", codes)}
-              getKey={(item) => item.code}
-              placeholder="Todos los roles"
-            />
-          </div>
-          <div className="space-y-1.5">
             <Label>Condición de Pago</Label>
             <Select
               value={data.paymentCondition}
@@ -405,21 +420,10 @@ function PriceRuleFormInner() {
           <p className="text-xs text-muted-foreground">Sobre qué producto aplica esta regla.</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="useSaleOrderTotal"
-            checked={data.useSaleOrderTotalForOutcome}
-            onCheckedChange={(c) => set("useSaleOrderTotalForOutcome", c === true)}
-          />
-          <Label htmlFor="useSaleOrderTotal" className="font-normal">
-            Usar el valor de la compra actual
-          </Label>
-        </div>
-
         <div className="space-y-1.5">
           <Label>Tipo de Resolución</Label>
           <div className="flex gap-2">
-            {(["RESTRICTED", "GENERAL"] as RuleType[]).map((rt) => (
+            {(["RESTRICTED", "GENERAL", "RESTRICTED_QUANTITY"] as RuleType[]).map((rt) => (
               <Button
                 key={rt}
                 type="button"
@@ -432,9 +436,11 @@ function PriceRuleFormInner() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            {data.ruleType === "RESTRICTED"
-              ? "Deben calzar todos los sujetos cargados abajo (el más estricto)."
-              : "Basta con que uno de los sujetos cargados abajo calce."}
+            {data.ruleType === "RESTRICTED" &&
+              "Deben calzar todos los sujetos cargados abajo (el más estricto)."}
+            {data.ruleType === "GENERAL" && "Basta con que uno de los sujetos cargados abajo calce."}
+            {data.ruleType === "RESTRICTED_QUANTITY" &&
+              "Igual que Restrictivo, pero además cada Producto cargado abajo exige su propia cantidad mínima en el pedido (ej. 10 Ketchup + 10 Mayonesa + 10 Mostaza, no solo que estén presentes)."}
           </p>
         </div>
 
@@ -442,6 +448,7 @@ function PriceRuleFormInner() {
           rows={data.specificRows}
           onChange={(rows) => set("specificRows", rows)}
           elements={SPECIFIC_ELEMENTS}
+          requireQty={data.ruleType === "RESTRICTED_QUANTITY"}
         />
       </Card>
 
@@ -477,7 +484,12 @@ function PriceRuleFormInner() {
             <Label>Tipo de Resultado *</Label>
             <Select
               value={data.outcomeType}
-              onValueChange={(v) => set("outcomeType", v as OutcomeType)}
+              onValueChange={(v) => {
+                set("outcomeType", v as OutcomeType)
+                // Solo Bonificación de Productos puede ser Acumulable (§22) — cualquier otro tipo
+                // se fuerza a No Acumulable, no queda a elección.
+                if (v !== "PRODUCT") set("exclusiveOutcome", "OUTCOME_TYPE")
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -485,7 +497,11 @@ function PriceRuleFormInner() {
               <SelectContent>
                 {Object.entries(OUTCOME_TYPE_LABELS)
                   .filter(
-                    ([k]) => data.outcomeMode !== "FREQUENCY" || FREQUENCY_ALLOWED_TYPES.includes(k as OutcomeType)
+                    // Reglas viejas ya guardadas con un tipo descontinuado (DISCOUNT_AMOUNT/FIXED_PRICE/
+                    // PRODUCT_SURCHARGE, §21/§22) igual se pueden ver seleccionadas acá — solo se les
+                    // esconde el resto del combo si no la están editando.
+                    ([k]) =>
+                      k === data.outcomeType || OUTCOME_MODE_ALLOWED_TYPES[data.outcomeMode].includes(k as OutcomeType)
                   )
                   .map(([k, v]) => (
                     <SelectItem key={k} value={k}>
@@ -494,11 +510,15 @@ function PriceRuleFormInner() {
                   ))}
               </SelectContent>
             </Select>
-            {data.outcomeMode === "FREQUENCY" && (
-              <p className="text-xs text-muted-foreground">
-                Precio Fijo no está disponible para Frecuencia.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {data.outcomeMode === "SCALE" &&
+                "Escala admite Bonificación de Productos o Descuento %."}
+              {data.outcomeMode === "SINGLE" &&
+                "Tradicional admite Bonificación de Productos o Recargo por producto."}
+              {data.outcomeMode === "FREQUENCY" && "Frecuencia solo admite Bonificación de Productos."}
+              {data.outcomeMode === "ACCUMULATED" &&
+                "Acumulado admite Bonificación de Productos o Descuento % (propuesta, a confirmar)."}
+            </p>
           </div>
         </div>
 
@@ -524,8 +544,95 @@ function PriceRuleFormInner() {
           </div>
         )}
 
-        {/* Aplicación Regla — solo Bonificación de Productos / Recargo por producto, en cualquier modo. */}
-        {isProductOutcome && (
+        {/* Acumulado — propuesta nueva de la reunión del 2026-08-27 (CLAUDE.md §23), sin
+            equivalente en el motor legacy. El "quién" sigue siendo Criterios de la Regla como
+            cualquier otro modo — esto solo define SOBRE QUÉ se suma el histórico y CUÁNTO hay que
+            superar para activar el resultado. La sumatoria siempre agrupa por Dueño. */}
+        {data.outcomeMode === "ACCUMULATED" && (
+          <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+            <p className="text-xs text-muted-foreground">
+              El acumulado se calcula por Dueño — suma las compras de todos los pedidos de ese
+              Dueño en el período, sin importar qué Cliente puntual hizo cada pedido.
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Se acumula</Label>
+                <Select
+                  value={data.accumulationScope ?? "TOTAL"}
+                  onValueChange={(v) => {
+                    set("accumulationScope", v as typeof data.accumulationScope)
+                    set("accumulationScopeRef", undefined)
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ACCUMULATION_SCOPE_LABELS).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {data.accumulationScope && data.accumulationScope !== "TOTAL" && (
+                <div className="space-y-1.5">
+                  <Label>{ACCUMULATION_SCOPE_LABELS[data.accumulationScope]}</Label>
+                  <CatalogCombobox
+                    items={
+                      ACCUMULATION_SCOPE_CATALOGS[
+                        data.accumulationScope as keyof typeof ACCUMULATION_SCOPE_CATALOGS
+                      ]
+                    }
+                    onSelect={(item) => set("accumulationScopeRef", { code: item.code, name: item.name })}
+                    placeholder={
+                      data.accumulationScopeRef
+                        ? data.accumulationScopeRef.name
+                        : `Buscar ${ACCUMULATION_SCOPE_LABELS[data.accumulationScope].toLowerCase()}…`
+                    }
+                  />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label htmlFor="accFromDate">Ventana de tiempo — Desde</Label>
+                <Input
+                  id="accFromDate"
+                  type="date"
+                  value={data.accumulationFromDate ?? ""}
+                  onChange={(e) => set("accumulationFromDate", e.target.value || undefined)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="accToDate">Ventana de tiempo — Hasta</Label>
+                <Input
+                  id="accToDate"
+                  type="date"
+                  value={data.accumulationToDate ?? ""}
+                  onChange={(e) => set("accumulationToDate", e.target.value || undefined)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="accThreshold">Monto Umbral (Bs)</Label>
+                <Input
+                  id="accThreshold"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={data.accumulationThreshold ?? ""}
+                  onChange={(e) =>
+                    set("accumulationThreshold", e.target.value ? Number(e.target.value) : undefined)
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Aplicación Regla — regla de negocio (§22): solo Bonificación de Productos puede ser
+            Acumulable. Cualquier otro Tipo de Resultado (incl. Recargo por producto en reglas
+            viejas) queda fijo en No Acumulable, sin elección. */}
+        {data.outcomeType === "PRODUCT" ? (
           <div className="space-y-1.5 sm:max-w-xs">
             <Label>Aplicación Regla</Label>
             <Select
@@ -544,6 +651,12 @@ function PriceRuleFormInner() {
               </SelectContent>
             </Select>
           </div>
+        ) : (
+          isProductOutcome && (
+            <p className="text-xs text-muted-foreground">
+              Aplicación Regla: No Acumulable — solo Bonificación de Productos puede ser Acumulable.
+            </p>
+          )
         )}
 
         {/* Escala con resultado numérico (%, monto, precio fijo) — el "Valor" vive en cada escalón. */}
@@ -576,8 +689,11 @@ function PriceRuleFormInner() {
           />
         )}
 
-        {/* Valor simple — Tradicional o Frecuencia con resultado numérico. */}
-        {(data.outcomeMode === "SINGLE" || data.outcomeMode === "FREQUENCY") && !isProductOutcome && (
+        {/* Valor simple — Tradicional, Frecuencia o Acumulado con resultado numérico. */}
+        {(data.outcomeMode === "SINGLE" ||
+          data.outcomeMode === "FREQUENCY" ||
+          data.outcomeMode === "ACCUMULATED") &&
+          !isProductOutcome && (
           <div className="max-w-xs space-y-1.5">
             <Label htmlFor="value">{VALUE_INPUT_LABELS[data.outcomeType]}</Label>
             <Input

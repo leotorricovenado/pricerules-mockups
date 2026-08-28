@@ -15,6 +15,7 @@ export type Permission =
   | "price_rules.duplicate"
   | "price_rules.toggle_status"
   | "price_rules.approve"
+  | "price_rules.reject_approved"
 
 export interface AppUser {
   id: string
@@ -37,6 +38,10 @@ export const USERS: AppUser[] = [
 // separación de funciones: quien la crea/edita no es quien la aprueba. El Gerente Comercial es
 // quien realmente aprueba en el sistema real (CLAUDE.md §9, PRICING_ENABLE_USERS_FOR_APPROVING_RULE_APP
 // incluye fernando.unzueta) y puede activar/desactivar, pero no crea reglas nuevas.
+//
+// price_rules.reject_approved (acordado en la reunión del 2026-08-27, CLAUDE.md §21) es
+// deliberadamente exclusivo de Admin, no del Gerente Comercial: es una vía de corrección de
+// errores de typeo en una aprobación ya hecha, separada del flujo normal de aprobar/rechazar.
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ADMIN: [
     "price_rules.create",
@@ -45,6 +50,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "price_rules.edit",
     "price_rules.duplicate",
     "price_rules.toggle_status",
+    "price_rules.reject_approved",
   ],
   COMMERCIAL_MANAGER: ["price_rules.view", "price_rules.toggle_status", "price_rules.approve"],
 }

@@ -42,12 +42,6 @@ export const WAREHOUSES: CatalogItem[] = [
   { id: 1001, code: "ALM-ALTO-01", name: "Almacén El Alto" },
 ];
 
-export const ROLE_TYPES: CatalogItem[] = [
-  { id: 1, code: "SELLER", name: "Vendedor" },
-  { id: 2, code: "DRIVER", name: "Conductor" },
-  { id: 3, code: "COLLECTOR", name: "Cobrador" },
-];
-
 // 200001-200003 son nombres reales tomados de result-100,json (clientes que aparecen en nombres
 // de reglas reales); el resto son de relleno para variar el typeahead.
 export const CUSTOMERS: CatalogItem[] = [
@@ -81,6 +75,16 @@ export const ROUTES: CatalogItem[] = [
   { id: 1, code: "RUTA-01", name: "Ruta 01 — Centro" },
   { id: 2, code: "RUTA-02", name: "Ruta 02 — Zona Norte" },
   { id: 3, code: "RUTA-03", name: "Ruta 03 — Zona Sur" },
+];
+
+// Vendedores (empleados) — pasa a ser un Criterio de la Regla propio (el "quién") a partir de la
+// reunión del 2026-08-27 (CLAUDE.md §21). Antes era un filtro genérico de "Roles" en Criterios
+// Generales (catálogo ROLE_TYPES, código SELLER — ya eliminado de este archivo) — ese filtro se
+// elimina, esto lo reemplaza con personas concretas en vez de un tipo de rol.
+export const SELLERS: CatalogItem[] = [
+  { id: 5638, code: "5638", name: "Juan Pérez" },
+  { id: 5701, code: "5701", name: "María Fernández" },
+  { id: 5822, code: "5822", name: "Roberto Quispe" },
 ];
 
 // Marcas reales de Grupo Venado (extraídas de los nombres de regla en result-100,json — Venado
