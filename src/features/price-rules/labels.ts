@@ -74,7 +74,7 @@ export const CRITERIA_ELEMENT_LABELS: Record<CriteriaElementType, string> = {
   PROPIETARIO: "Propietario",
   CLIENTE: "Cliente",
   CANAL_VENTA: "Canal de venta",
-  SECTOR: "Sector",
+  SUBCANAL: "Subcanal",
   RUTA: "Ruta",
   VENDEDOR: "Vendedor",
 }

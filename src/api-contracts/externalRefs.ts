@@ -50,11 +50,11 @@ export const EXTERNAL_REFS: ExternalRef[] = [
       "Criterios de la Regla → elemento Canal de venta. También el dropdown adicional obligatorio que aparece al elegir Ruta (§21 — se guarda junto a la fila, CriteriaRow.saleChannelId).",
   },
   {
-    id: "sector",
+    id: "sub-sale-channel",
     service: "sales",
-    label: "Sector",
-    mockSource: "SECTORS",
-    usage: "Criterios de la Regla → elemento Sector.",
+    label: "Subcanal",
+    mockSource: "SUB_SALE_CHANNELS",
+    usage: "Criterios de la Regla → elemento Subcanal.",
   },
   {
     id: "route",

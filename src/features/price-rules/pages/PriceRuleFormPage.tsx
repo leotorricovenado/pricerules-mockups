@@ -54,7 +54,7 @@ import {
   OWNERS,
   CUSTOMERS,
   SALE_CHANNELS,
-  SECTORS,
+  SUB_SALE_CHANNELS,
   ROUTES,
   SELLERS,
   DIVISIONS,
@@ -114,7 +114,7 @@ const CRITERIA_ELEMENTS = [
   { value: "PROPIETARIO" as const, label: "Propietario", catalog: OWNERS },
   { value: "CLIENTE" as const, label: "Cliente", catalog: CUSTOMERS },
   { value: "CANAL_VENTA" as const, label: "Canal de venta", catalog: SALE_CHANNELS },
-  { value: "SECTOR" as const, label: "Sector", catalog: SECTORS },
+  { value: "SUBCANAL" as const, label: "Subcanal", catalog: SUB_SALE_CHANNELS },
   { value: "RUTA" as const, label: "Ruta", catalog: ROUTES },
   { value: "VENDEDOR" as const, label: "Vendedor", catalog: SELLERS },
 ]

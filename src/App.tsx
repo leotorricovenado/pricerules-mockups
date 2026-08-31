@@ -7,6 +7,7 @@ import { PriceRulesProvider } from "@/features/price-rules/store"
 import { PriceRuleListPage } from "@/features/price-rules/pages/PriceRuleListPage"
 import { PriceRuleFormPage } from "@/features/price-rules/pages/PriceRuleFormPage"
 import { PriceRuleDetailPage } from "@/features/price-rules/pages/PriceRuleDetailPage"
+import { SimulatorPage } from "@/features/price-rules/pages/SimulatorPage"
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage"
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/reglas-precio" element={<PriceRuleListPage />} />
                 <Route path="/reglas-precio/nueva" element={<PriceRuleFormPage />} />
+                <Route path="/reglas-precio/simulador" element={<SimulatorPage />} />
                 <Route path="/reglas-precio/:id" element={<PriceRuleDetailPage />} />
                 <Route path="/reglas-precio/:id/editar" element={<PriceRuleFormPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

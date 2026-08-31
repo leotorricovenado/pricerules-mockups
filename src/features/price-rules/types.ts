@@ -34,7 +34,7 @@ export type CriteriaElementType =
   | "PROPIETARIO"
   | "CLIENTE"
   | "CANAL_VENTA"
-  | "SECTOR"
+  | "SUBCANAL"
   | "RUTA"
   | "VENDEDOR"
 

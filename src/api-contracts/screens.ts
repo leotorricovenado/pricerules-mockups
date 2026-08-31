@@ -44,7 +44,7 @@ const DETAIL: ScreenContracts = {
     "customer",
     "owner",
     "sale-channel",
-    "sector",
+    "sub-sale-channel",
     "route",
     "division",
     "brand",
@@ -77,11 +77,21 @@ const FORM_EDIT: ScreenContracts = {
   externalRefIds: [],
 }
 
-// Coincide con las rutas declaradas en App.tsx.
+// Caso B del simulador (CLAUDE.md §29) — lista reglas para elegir (list-price-rules) y busca
+// clientes/productos para el pedido de prueba (mismos lookups de Sales que el formulario).
+const SIMULATOR: ScreenContracts = {
+  title: "Simulador de Reglas de Precio",
+  contractIds: ["simulate-price-rules", "list-price-rules", ...SALES_LOOKUP_CONTRACT_IDS],
+  externalRefIds: [],
+}
+
+// Coincide con las rutas declaradas en App.tsx. El literal /simulador se resuelve ANTES que el
+// patrón /:id de abajo — si no, "simulador" se interpretaría como un id de regla.
 export function resolveScreenContracts(pathname: string): ScreenContracts | undefined {
   if (pathname === "/dashboard") return DASHBOARD
   if (pathname === "/reglas-precio") return LIST
   if (pathname === "/reglas-precio/nueva") return FORM_CREATE
+  if (pathname === "/reglas-precio/simulador") return SIMULATOR
   if (/^\/reglas-precio\/[^/]+\/editar$/.test(pathname)) return FORM_EDIT
   if (/^\/reglas-precio\/[^/]+$/.test(pathname)) return DETAIL
   return undefined

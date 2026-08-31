@@ -1,4 +1,4 @@
-import { LayoutDashboard, Tag } from "lucide-react"
+import { FlaskConical, LayoutDashboard, Tag } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import {
   Sidebar,
@@ -21,10 +21,19 @@ interface NavItem {
 }
 
 // Único módulo del mockup (CRM-DEAL tendrá más microservicios/secciones en el sidebar a futuro,
-// ver CLAUDE.md §12) — hoy solo Dashboard y Reglas de Precio.
+// ver CLAUDE.md §12) — hoy Dashboard, Reglas de Precio y el Simulador (CLAUDE.md §29, caso B).
+// El Simulador es una entrada de nivel superior (no un tab dentro de Reglas de Precio) porque no
+// gira en torno a UNA regla — corre un conjunto elegido a mano, más parecido a una herramienta que
+// a una pantalla CRUD.
 const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, isActive: (p) => p === "/dashboard" },
-  { title: "Reglas de Precio", url: "/reglas-precio", icon: Tag, isActive: (p) => p.startsWith("/reglas-precio") },
+  {
+    title: "Reglas de Precio",
+    url: "/reglas-precio",
+    icon: Tag,
+    isActive: (p) => p.startsWith("/reglas-precio") && p !== "/reglas-precio/simulador",
+  },
+  { title: "Simulador", url: "/reglas-precio/simulador", icon: FlaskConical, isActive: (p) => p === "/reglas-precio/simulador" },
 ]
 
 export function AppSidebar() {

@@ -541,4 +541,68 @@ export const PRICE_RULE_CONTRACTS: ApiContract[] = [
     },
     notes: ["Sin dependencias en tiempo de cálculo con otros microservicios — Sales le manda todo servido (CLAUDE.md §12)."],
   },
+  {
+    id: "simulate-price-rules",
+    service: "price-rules",
+    method: "POST",
+    path: "/price-rules/simulate",
+    summary: "Simulador de reglas — caso B (competencia entre varias)",
+    description:
+      "CLAUDE.md §29: reusa internamente el mismo servicio de calculate-price con dryRun=true (no escribe price_rule_applied ni price_rule_customer_applied, no consume apply_only_once). Implementado en el mockup como motor en memoria (features/price-rules/simulator/engine.ts) sobre las mismas reglas de MOCK_PRICE_RULES — todavía no hay backend real detrás.",
+    status: "planned",
+    requestBody: {
+      description:
+        "ruleIds vacío/omitido = todas las Activas+Aprobadas MÁS las pendientes de aprobación (CLAUDE.md §29 decisión 1) — no solo las ya aprobadas, porque el caso de uso principal es previsualizar antes de aprobar.",
+      example: {
+        testOrder: {
+          orderDate: "2026-08-31",
+          distributorId: 1,
+          warehouseId: 101,
+          paymentCondition: "CASH",
+          customer: { mode: "GENERIC", ownerId: 2, saleChannelId: 1 },
+          lines: [
+            { productId: 5003, quantity: 40, unitPrice: 14.2 },
+            { productId: 5004, quantity: 40, unitPrice: 12.5 },
+          ],
+        },
+        ruleIds: [4821, 4826],
+        tieBreakFlags: {
+          DISCOUNT_PERCENTAGE: false,
+          DISCOUNT_AMOUNT: false,
+          FIXED_PRICE: false,
+          PRODUCT: false,
+          PRODUCT_SURCHARGE: false,
+        },
+      },
+    },
+    responseBody: {
+      description:
+        "No es solo el total final: es el árbol de razonamiento por línea — reglas aplicables, ganador de cada outcomeType con su valor, y si hubo exclusividad cruzada (§27) quién bloqueó a quién. Mismo desglose que muestra la pantalla del simulador.",
+      example: {
+        ruleCountConsidered: 2,
+        ruleCountApplicable: 1,
+        lines: [
+          {
+            productCode: "P-5003",
+            subtotal: 568.0,
+            buckets: [
+              {
+                outcomeType: "DISCOUNT_PERCENTAGE",
+                candidates: [{ ruleId: 4821, ruleName: "Descuento volumen Kris — Canal Moderno", valueLabel: "5% → Bs 28.40 de descuento", won: true }],
+                winner: { ruleId: 4821 },
+                blockedByExclusivity: false,
+              },
+            ],
+            finalTotal: 539.6,
+          },
+        ],
+        grandTotalBefore: 1068.0,
+        grandTotalAfter: 1039.6,
+      },
+    },
+    notes: [
+      "Casos A (\"Probar esta regla\" dentro del form) y C (\"Ver impacto\" en el modal de aprobación) quedan fuera de este contrato — CLAUDE.md §29 los deja como diseño propuesto, sin implementar todavía.",
+      "El motor del mockup (engine.ts) es una aproximación de §8, no un port 1:1 del JAR — simplifica los 11 bits de matching a lo que el formulario de este mockup realmente captura. El port fiel es trabajo de Fase 4 (motor NestJS real).",
+    ],
+  },
 ]

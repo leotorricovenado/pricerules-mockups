@@ -91,7 +91,7 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
   {
     id: 4824,
     company: "VEMASSA",
-    name: "Descuento pronto pago — Sector Centro",
+    name: "Descuento pronto pago — Subcanal Centro",
     description: "Descuento por monto para condición de pago contado.",
     fromDate: "2026-05-01",
     thruDate: "2026-08-31",
@@ -103,7 +103,7 @@ const HAND_CRAFTED_RULES: PriceRule[] = [
     distributorIds: [1],
     warehouseIds: [],
     paymentCondition: "CASH",
-    criteriaRows: [{ id: "c1", type: "SECTOR", code: "SEC-CENTRO", name: "Sector Centro" }],
+    criteriaRows: [{ id: "c1", type: "SUBCANAL", code: "SUBCANAL-CENTRO", name: "Subcanal Centro" }],
     ruleType: "GENERAL",
     specificRows: [],
     target: "SALE_ORDER",

@@ -7,6 +7,8 @@ import { TopRulesChart } from "../components/TopRulesChart"
 import { ApprovalStatusChart } from "../components/ApprovalStatusChart"
 import { OutcomeTypeChart } from "../components/OutcomeTypeChart"
 import { CompanyChart } from "../components/CompanyChart"
+import { ChannelChart } from "../components/ChannelChart"
+import { SubchannelChart } from "../components/SubchannelChart"
 import { computeDailySeries } from "../data/applications"
 
 export function DashboardPage() {
@@ -65,6 +67,11 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <OutcomeTypeChart rules={rules} />
         <CompanyChart rules={rules} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ChannelChart rules={rules} />
+        <SubchannelChart rules={rules} />
       </div>
     </div>
   )

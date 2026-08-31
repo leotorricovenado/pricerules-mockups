@@ -53,12 +53,12 @@ export const SALES_CONTRACTS: ApiContract[] = [
     path: "/sales/lookups/{type}",
     summary: "Catálogos chicos — precarga completa para combos",
     description:
-      "Cubre los 11 catálogos que el form de Reglas de Precio carga enteros porque son chicos y estables: Distribuidora, Tipo de Rol, Canal de venta, Sector, Ruta, Propietario, División, Marca, Categoría, Familia y Sub-Familia. Mismo shape de respuesta para los 11 — solo cambia qué trae {type}. Alternativa considerada: un recurso REST propio por catálogo (/sales/distributors, /sales/brands, …) — más \"puro\" pero son 11 endpoints casi idénticos para documentar y mantener; se prefiere este único endpoint parametrizado mientras sigan siendo solo lectura para este consumidor.",
+      "Cubre los 11 catálogos que el form de Reglas de Precio carga enteros porque son chicos y estables: Distribuidora, Tipo de Rol, Canal de venta, Subcanal, Ruta, Propietario, División, Marca, Categoría, Familia y Sub-Familia. Mismo shape de respuesta para los 11 — solo cambia qué trae {type}. Alternativa considerada: un recurso REST propio por catálogo (/sales/distributors, /sales/brands, …) — más \"puro\" pero son 11 endpoints casi idénticos para documentar y mantener; se prefiere este único endpoint parametrizado mientras sigan siendo solo lectura para este consumidor.",
     status: "planned",
     pathParams: [
       {
         name: "type",
-        type: "distributors | role-types | sale-channels | sectors | routes | owners | divisions | brands | categories | families | sub-families",
+        type: "distributors | role-types | sale-channels | sub-sale-channels | routes | owners | divisions | brands | categories | families | sub-families",
         required: true,
         description: "Qué catálogo pedir.",
       },

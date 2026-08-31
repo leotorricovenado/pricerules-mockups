@@ -13,9 +13,24 @@ export interface CatalogItem {
 // `units` es la cadena de empaque del producto (de la más chica a la más grande, ej. Ketchup:
 // Display → Caja) — el resultado "Bonificación de Productos"/"Recargo por producto" sí deja
 // elegir en qué unidad de esa cadena se entrega/recarga, a diferencia de `unit` (fijo).
+//
+// brandId/categoryId/familyId/subFamilyId/divisionId — clasificación del producto (CLAUDE.md §8.1:
+// "productClassification"). Antes no hacía falta modelarla porque nada del mockup comparaba un
+// producto de pedido contra un criterio de Marca/Categoría/etc. El simulador (§29) sí necesita
+// resolver "esta línea del pedido de prueba, ¿cae bajo la Marca Kris?" — de ahí estos campos.
+// referencePrice — precio de lista de referencia (Bs), usado SOLO por el simulador para poder
+// valorizar bonificaciones/precio fijo en la comparación de canastas (§8.6: el "valor" de una
+// bonificación es precio × cantidad). En producción esto lo entrega Sales en cada línea real del
+// pedido, no el catálogo — acá no hay Sales, así que se aproxima con un precio fijo por producto.
 export interface ProductCatalogItem extends CatalogItem {
   unit: string;
   units: string[];
+  brandId?: number;
+  categoryId?: number;
+  familyId?: number;
+  subFamilyId?: number;
+  divisionId?: number;
+  referencePrice: number;
 }
 
 export const DISTRIBUTORS: CatalogItem[] = [
@@ -65,10 +80,10 @@ export const SALE_CHANNELS: CatalogItem[] = [
   { id: 3, code: "CAN-HOR", name: "Canal Horizontal" },
 ];
 
-export const SECTORS: CatalogItem[] = [
-  { id: 1, code: "SEC-CENTRO", name: "Sector Centro" },
-  { id: 2, code: "SEC-NORTE", name: "Sector Norte" },
-  { id: 3, code: "SEC-SUR", name: "Sector Sur" },
+export const SUB_SALE_CHANNELS: CatalogItem[] = [
+  { id: 1, code: "SUBCANAL-CENTRO", name: "Subcanal Centro" },
+  { id: 2, code: "SUBCANAL-NORTE", name: "Subcanal Norte" },
+  { id: 3, code: "SUBCANAL-SUR", name: "Subcanal Sur" },
 ];
 
 export const ROUTES: CatalogItem[] = [
@@ -128,21 +143,25 @@ export const DIVISIONS: CatalogItem[] = [
   { id: 3, code: "DIV-03", name: "División Bebidas" },
 ];
 
+// brandId/categoryId/familyId/subFamilyId/divisionId asignados a mano siguiendo la clasificación
+// ya usada en los ejemplos de mock-price-rules.ts (ej. Ketchup Kris → MARCA-04/CAT-01/FAM-01/SF-01/
+// DIV-01). Cuando el producto no calza claramente en ninguna Sub-Familia del catálogo (ej. Aceite
+// de Oliva) se deja subFamilyId sin definir — el simulador lo trata como "no aplica", no como error.
 export const PRODUCTS: ProductCatalogItem[] = [
-  { id: 5001, code: "P-5001", name: "Ketchup Real 500ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
-  { id: 5002, code: "P-5002", name: "Mayonesa Real 500ml", unit: "POMO", units: ["DISPLAY", "CAJA"] },
-  { id: 5003, code: "P-5003", name: "Ketchup Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"] },
-  { id: 5004, code: "P-5004", name: "Mayonesa Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"] },
-  { id: 5005, code: "P-5005", name: "Mostaza/Ketchup Kris 485g", unit: "SOBRE", units: ["DISPLAY", "CAJA"] },
-  { id: 5006, code: "P-5006", name: "Detergente en Polvo Pulpin 150gr", unit: "BOLSA", units: ["PAQUETE", "CAJA"] },
-  { id: 5007, code: "P-5007", name: "Lavavajillas Pulpin 600ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
-  { id: 5008, code: "P-5008", name: "Vajillero Bristar Doypack 1L", unit: "DISPLAY", units: ["DISPLAY", "CAJA"] },
-  { id: 5009, code: "P-5009", name: "Agua Speranza 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
-  { id: 5010, code: "P-5010", name: "De La Granja Naranja 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
-  { id: 5011, code: "P-5011", name: "Atún El Pescador", unit: "LATA", units: ["DISPLAY", "CAJA"] },
-  { id: 5012, code: "P-5012", name: "Levadura Fresca Ingavi 500gr", unit: "PAQUETE", units: ["PAQUETE", "CAJA"] },
-  { id: 5013, code: "P-5013", name: "Aceite de Oliva 1000ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"] },
-  { id: 5014, code: "P-5014", name: "Agua Speranza 600ml", unit: "BOTELLA", units: ["PAQUETE", "CAJA"] },
+  { id: 5001, code: "P-5001", name: "Ketchup Real 500ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"], brandId: 12, categoryId: 1, familyId: 1, subFamilyId: 1, divisionId: 1, referencePrice: 9.9 },
+  { id: 5002, code: "P-5002", name: "Mayonesa Real 500ml", unit: "POMO", units: ["DISPLAY", "CAJA"], brandId: 12, categoryId: 1, familyId: 1, subFamilyId: 2, divisionId: 1, referencePrice: 11.5 },
+  { id: 5003, code: "P-5003", name: "Ketchup Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"], brandId: 4, categoryId: 1, familyId: 1, subFamilyId: 1, divisionId: 1, referencePrice: 14.2 },
+  { id: 5004, code: "P-5004", name: "Mayonesa Kris 980g", unit: "BOLSA", units: ["DISPLAY", "CAJA"], brandId: 4, categoryId: 1, familyId: 1, subFamilyId: 2, divisionId: 1, referencePrice: 12.5 },
+  { id: 5005, code: "P-5005", name: "Mostaza/Ketchup Kris 485g", unit: "SOBRE", units: ["DISPLAY", "CAJA"], brandId: 4, categoryId: 1, familyId: 1, subFamilyId: 1, divisionId: 1, referencePrice: 8.9 },
+  { id: 5006, code: "P-5006", name: "Detergente en Polvo Pulpin 150gr", unit: "BOLSA", units: ["PAQUETE", "CAJA"], brandId: 23, categoryId: 2, familyId: 2, subFamilyId: 3, divisionId: 2, referencePrice: 4.5 },
+  { id: 5007, code: "P-5007", name: "Lavavajillas Pulpin 600ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"], brandId: 23, categoryId: 2, familyId: 2, subFamilyId: 4, divisionId: 2, referencePrice: 7.8 },
+  { id: 5008, code: "P-5008", name: "Vajillero Bristar Doypack 1L", unit: "DISPLAY", units: ["DISPLAY", "CAJA"], brandId: 31, categoryId: 2, familyId: 2, subFamilyId: 4, divisionId: 2, referencePrice: 13.0 },
+  { id: 5009, code: "P-5009", name: "Agua Speranza 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"], brandId: 52, categoryId: 3, familyId: 3, divisionId: 3, referencePrice: 6.5 },
+  { id: 5010, code: "P-5010", name: "De La Granja Naranja 2L", unit: "BOTELLA", units: ["PAQUETE", "CAJA"], brandId: 45, categoryId: 3, familyId: 3, divisionId: 3, referencePrice: 9.0 },
+  { id: 5011, code: "P-5011", name: "Atún El Pescador", unit: "LATA", units: ["DISPLAY", "CAJA"], brandId: 68, categoryId: 4, familyId: 1, divisionId: 1, referencePrice: 10.5 },
+  { id: 5012, code: "P-5012", name: "Levadura Fresca Ingavi 500gr", unit: "PAQUETE", units: ["PAQUETE", "CAJA"], brandId: 77, categoryId: 5, familyId: 1, divisionId: 1, referencePrice: 15.0 },
+  { id: 5013, code: "P-5013", name: "Aceite de Oliva 1000ml", unit: "BOTELLA", units: ["DISPLAY", "CAJA"], categoryId: 4, familyId: 1, divisionId: 1, referencePrice: 22.0 },
+  { id: 5014, code: "P-5014", name: "Agua Speranza 600ml", unit: "BOTELLA", units: ["PAQUETE", "CAJA"], brandId: 52, categoryId: 3, familyId: 3, divisionId: 3, referencePrice: 2.8 },
 ];
 
 export const UNITS: CatalogItem[] = [

@@ -1,50 +1,8 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import type { DateRange } from "react-day-picker"
-import {
-  MoreHorizontal,
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-  Copy,
-  CheckCircle2,
-  PowerOff,
-  Power,
-  ChevronLeft,
-  ChevronRight,
-  FilterX,
-  Upload,
-  Ban,
-} from "lucide-react"
+import { Plus, Eye, Pencil, Copy, CheckCircle2, PowerOff, Power, Upload, Ban } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { DateRangePicker } from "@/components/ui/date-range-picker"
-import { toISODate } from "@/lib/date"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Card } from "@/components/ui/card"
+import { DataTable, defineColumns, FilterBar, defineFilters, type RowAction } from "@/components/data-table"
 import { useAuth } from "@/app/auth"
 import { usePriceRules } from "../store"
 import { ApprovalStatusBadge, StatusDot } from "../components/RuleStatusBadge"
@@ -60,39 +18,23 @@ import {
   formatDate,
   formatDateTime,
 } from "../labels"
-import type { ApprovalStatus, Company, PriceRule, RuleStatus, RuleType } from "../types"
+import type { PriceRule } from "../types"
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
-
-const EMPTY_FILTERS = {
-  search: "",
-  company: "ALL" as Company | "ALL",
-  approval: "ALL" as ApprovalStatus | "ALL",
-  status: "ALL" as RuleStatus | "ALL",
-  resolutionType: "ALL" as RuleType | "ALL",
-  creator: "ALL",
-}
-
-// Paginación numerada tipo "‹ Anterior 1 2 3 … 11 Siguiente ›" — colapsa en "…" (no clickeable)
-// cuando hay más páginas de las que entran cómodas alrededor de la actual.
-function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
-  const siblingCount = 2
-  if (total <= siblingCount * 2 + 3) {
-    return Array.from({ length: total }, (_, i) => i + 1)
-  }
-  const left = Math.max(current - siblingCount, 1)
-  const right = Math.min(current + siblingCount, total)
-  const pages: (number | "ellipsis")[] = []
-  if (left > 1) {
-    pages.push(1)
-    if (left > 2) pages.push("ellipsis")
-  }
-  for (let p = left; p <= right; p++) pages.push(p)
-  if (right < total) {
-    if (right < total - 1) pages.push("ellipsis")
-    pages.push(total)
-  }
-  return pages
+// Prueba de shadcn-ui-kit (github.com/oliviosubelza/shadcn-ui-kit): reemplaza la tabla + filtros +
+// paginación armados a mano por sus componentes DataTable/FilterBar (src/components/data-table/,
+// copiados verbatim del kit). El resto de la pantalla (header, diálogos de aprobación/rechazo/carga
+// masiva) no cambia.
+interface RuleFilterValues {
+  [key: string]: unknown
+  company?: string
+  approvalStatus?: string
+  status?: string
+  ruleType?: string
+  createdBy?: string
+  fromDateFrom?: string
+  fromDateTo?: string
+  thruDateFrom?: string
+  thruDateTo?: string
 }
 
 export function PriceRuleListPage() {
@@ -100,71 +42,198 @@ export function PriceRuleListPage() {
   const { can } = useAuth()
   const navigate = useNavigate()
 
-  const [search, setSearch] = useState(EMPTY_FILTERS.search)
-  const [company, setCompany] = useState(EMPTY_FILTERS.company)
-  const [approval, setApproval] = useState(EMPTY_FILTERS.approval)
-  const [status, setStatus] = useState(EMPTY_FILTERS.status)
-  const [resolutionType, setResolutionType] = useState(EMPTY_FILTERS.resolutionType)
-  const [creator, setCreator] = useState(EMPTY_FILTERS.creator)
-  const [startRange, setStartRange] = useState<DateRange | undefined>(undefined)
-  const [endRange, setEndRange] = useState<DateRange | undefined>(undefined)
-
-  const [pageSize, setPageSize] = useState(10)
-  const [currentPage, setCurrentPage] = useState(1)
-
+  const [filters, setFilters] = useState<Partial<RuleFilterValues>>({})
   const [approvalTarget, setApprovalTarget] = useState<PriceRule | null>(null)
   const [rejectApprovedTarget, setRejectApprovedTarget] = useState<PriceRule | null>(null)
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
 
   // Deriva las opciones del filtro "Creador de Regla" de las reglas existentes — no hay un
   // servicio de usuarios en el mockup (§21, admin acordó agregarlo en la reunión del 2026-08-27).
-  const creators = useMemo(
-    () => Array.from(new Set(rules.map((r) => r.createdBy))).sort(),
-    [rules]
+  const creators = useMemo(() => Array.from(new Set(rules.map((r) => r.createdBy))).sort(), [rules])
+
+  const filterDefs = useMemo(
+    () =>
+      defineFilters<RuleFilterValues>([
+        {
+          type: "select",
+          id: "company",
+          label: "Empresa",
+          options: Object.entries(COMPANY_LABELS).map(([value, label]) => ({ value, label })),
+        },
+        {
+          type: "select",
+          id: "approvalStatus",
+          label: "Aprobación",
+          options: [
+            { value: "APPROVED", label: "Aprobada" },
+            { value: "WAITING_COMMERCIAL_APPROVAL", label: "Pend. aprobación comercial" },
+            { value: "WAITING_MANAGEMENT_APPROVAL", label: "Pend. aprobación gerencial" },
+            { value: "REJECTED", label: "Rechazada" },
+          ],
+        },
+        {
+          type: "select",
+          id: "status",
+          label: "Estado",
+          options: [
+            { value: "ENABLE", label: "Activo" },
+            { value: "DISABLED", label: "Inactivo" },
+          ],
+        },
+        {
+          type: "select",
+          id: "ruleType",
+          label: "Tipo de Resolución",
+          options: Object.entries(RULE_TYPE_LABELS).map(([value, label]) => ({ value, label })),
+        },
+        {
+          type: "select",
+          id: "createdBy",
+          label: "Creador",
+          options: creators.map((c) => ({ value: c, label: formatCreatorName(c) })),
+        },
+        { type: "daterange", id: "fromDate", label: "Fecha Inicio", fromKey: "fromDateFrom", toKey: "fromDateTo" },
+        { type: "daterange", id: "thruDate", label: "Fecha Fin", fromKey: "thruDateFrom", toKey: "thruDateTo" },
+      ]),
+    [creators]
   )
 
   const filtered = useMemo(() => {
-    const startFromISO = toISODate(startRange?.from)
-    const startToISO = toISODate(startRange?.to ?? startRange?.from)
-    const endFromISO = toISODate(endRange?.from)
-    const endToISO = toISODate(endRange?.to ?? endRange?.from)
-
     return rules.filter((r) => {
-      if (search && !r.name.toLowerCase().includes(search.toLowerCase()) && !String(r.id).includes(search)) {
-        return false
-      }
-      if (company !== "ALL" && r.company !== company) return false
-      if (approval !== "ALL" && r.approvalStatus !== approval) return false
-      if (status !== "ALL" && r.status !== status) return false
-      if (resolutionType !== "ALL" && r.ruleType !== resolutionType) return false
-      if (creator !== "ALL" && r.createdBy !== creator) return false
-      if (startFromISO && r.fromDate < startFromISO) return false
-      if (startToISO && r.fromDate > startToISO) return false
-      if (endFromISO && r.thruDate < endFromISO) return false
-      if (endToISO && r.thruDate > endToISO) return false
+      if (filters.company && r.company !== filters.company) return false
+      if (filters.approvalStatus && r.approvalStatus !== filters.approvalStatus) return false
+      if (filters.status && r.status !== filters.status) return false
+      if (filters.ruleType && r.ruleType !== filters.ruleType) return false
+      if (filters.createdBy && r.createdBy !== filters.createdBy) return false
+      // FilterBar entrega el rango como datetime ISO completo (T00:00:00.000Z / T23:59:59.999Z);
+      // fromDate/thruDate son yyyy-mm-dd puros, por eso se compara solo la parte fecha.
+      if (filters.fromDateFrom && r.fromDate < filters.fromDateFrom.slice(0, 10)) return false
+      if (filters.fromDateTo && r.fromDate > filters.fromDateTo.slice(0, 10)) return false
+      if (filters.thruDateFrom && r.thruDate < filters.thruDateFrom.slice(0, 10)) return false
+      if (filters.thruDateTo && r.thruDate > filters.thruDateTo.slice(0, 10)) return false
       return true
     })
-  }, [rules, search, company, approval, status, resolutionType, creator, startRange, endRange])
+  }, [rules, filters])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-  const page = Math.min(currentPage, totalPages)
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
-  const pageNumbers = useMemo(() => getPageNumbers(page, totalPages), [page, totalPages])
+  const columns = useMemo(
+    () =>
+      defineColumns<PriceRule>([
+        {
+          id: "id",
+          header: "Código",
+          accessorKey: "id",
+          size: 90,
+          minSize: 70,
+          cell: (row) => <span className="font-mono text-xs text-muted-foreground">{row.id}</span>,
+        },
+        {
+          id: "name",
+          header: "Nombre",
+          accessorKey: "name",
+          size: 220,
+          minSize: 160,
+          cell: (row) => <span className="font-medium">{row.name}</span>,
+        },
+        {
+          id: "description",
+          header: "Descripción",
+          accessorKey: "description",
+          size: 260,
+          minSize: 160,
+          cell: (row) => <span className="text-muted-foreground">{row.description || "—"}</span>,
+        },
+        {
+          id: "createdAt",
+          header: "Creado",
+          accessorKey: "createdAt",
+          size: 150,
+          minSize: 120,
+          cell: (row) => <span className="text-muted-foreground">{formatDateTime(row.createdAt)}</span>,
+        },
+        {
+          id: "vigencia",
+          header: "Vigencia",
+          size: 170,
+          minSize: 140,
+          enableSorting: false,
+          cell: (row) => (
+            <span className="text-muted-foreground">
+              {formatDate(row.fromDate)} – {formatDate(row.thruDate)}
+            </span>
+          ),
+        },
+        {
+          id: "outcomeMode",
+          header: "Tipo",
+          accessorKey: "outcomeMode",
+          size: 110,
+          minSize: 90,
+          cell: (row) => OUTCOME_MODE_LABELS[row.outcomeMode],
+        },
+        {
+          id: "outcomeType",
+          header: "Tipo de Resultado",
+          accessorKey: "outcomeType",
+          size: 200,
+          minSize: 140,
+          cell: (row) => <span className="text-muted-foreground">{OUTCOME_TYPE_LABELS[row.outcomeType]}</span>,
+        },
+        {
+          id: "approvalStatus",
+          header: "Estado",
+          accessorKey: "approvalStatus",
+          size: 190,
+          minSize: 150,
+          enableSorting: false,
+          cell: (row) => <ApprovalStatusBadge status={row.approvalStatus} />,
+        },
+        {
+          id: "status",
+          header: "Activo",
+          accessorKey: "status",
+          size: 70,
+          minSize: 60,
+          enableSorting: false,
+          enableResizing: false,
+          meta: { align: "center" },
+          cell: (row) => <StatusDot status={row.status} />,
+        },
+      ]),
+    []
+  )
 
-  function resetPage() {
-    setCurrentPage(1)
-  }
-
-  function clearFilters() {
-    setSearch(EMPTY_FILTERS.search)
-    setCompany(EMPTY_FILTERS.company)
-    setApproval(EMPTY_FILTERS.approval)
-    setStatus(EMPTY_FILTERS.status)
-    setResolutionType(EMPTY_FILTERS.resolutionType)
-    setCreator(EMPTY_FILTERS.creator)
-    setStartRange(undefined)
-    setEndRange(undefined)
-    resetPage()
+  function rowActions(r: PriceRule): RowAction<PriceRule>[] {
+    const actions: RowAction<PriceRule>[] = [
+      { label: "Ver detalle", icon: Eye, onClick: (row) => navigate(`/reglas-precio/${row.id}`) },
+    ]
+    if (can("price_rules.edit") && r.approvalStatus !== "APPROVED") {
+      actions.push({ label: "Editar", icon: Pencil, onClick: (row) => navigate(`/reglas-precio/${row.id}/editar`) })
+    }
+    if (can("price_rules.duplicate")) {
+      actions.push({ label: "Duplicar", icon: Copy, onClick: (row) => duplicateRule(row.id) })
+    }
+    if (can("price_rules.approve") && r.approvalStatus === "WAITING_COMMERCIAL_APPROVAL") {
+      actions.push({ label: "Aprobar / Rechazar", icon: CheckCircle2, onClick: (row) => setApprovalTarget(row) })
+    }
+    if (can("price_rules.reject_approved") && r.approvalStatus === "APPROVED") {
+      actions.push({
+        label: "Rechazar (ya aprobada)",
+        icon: Ban,
+        variant: "destructive",
+        separator: true,
+        onClick: (row) => setRejectApprovedTarget(row),
+      })
+    }
+    if (can("price_rules.toggle_status")) {
+      actions.push({
+        label: r.status === "ENABLE" ? "Desactivar" : "Activar",
+        icon: r.status === "ENABLE" ? PowerOff : Power,
+        disabled: (row) => row.approvalStatus !== "APPROVED",
+        separator: true,
+        onClick: (row) => toggleEnabled(row.id),
+      })
+    }
+    return actions
   }
 
   return (
@@ -192,351 +261,30 @@ export function PriceRuleListPage() {
         </div>
       </div>
 
-      <Card className="space-y-4 p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1.5">
-            <Label>Buscar</Label>
-            <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Nombre o código…"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  resetPage()
-                }}
-                className="pl-8"
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Empresa</Label>
-            <Select
-              value={company}
-              onValueChange={(v) => {
-                setCompany(v as Company | "ALL")
-                resetPage()
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todas</SelectItem>
-                {Object.entries(COMPANY_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>
-                    {v}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Aprobación</Label>
-            <Select
-              value={approval}
-              onValueChange={(v) => {
-                setApproval(v as ApprovalStatus | "ALL")
-                resetPage()
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todas</SelectItem>
-                <SelectItem value="APPROVED">Aprobada</SelectItem>
-                <SelectItem value="WAITING_COMMERCIAL_APPROVAL">Pend. aprobación comercial</SelectItem>
-                <SelectItem value="WAITING_MANAGEMENT_APPROVAL">Pend. aprobación gerencial</SelectItem>
-                <SelectItem value="REJECTED">Rechazada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Estado</Label>
-            <Select
-              value={status}
-              onValueChange={(v) => {
-                setStatus(v as RuleStatus | "ALL")
-                resetPage()
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                <SelectItem value="ENABLE">Activo</SelectItem>
-                <SelectItem value="DISABLED">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1.5">
-            <Label>Tipo de Resolución</Label>
-            <Select
-              value={resolutionType}
-              onValueChange={(v) => {
-                setResolutionType(v as RuleType | "ALL")
-                resetPage()
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                {Object.entries(RULE_TYPE_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>
-                    {v}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Creador de Regla</Label>
-            <Select
-              value={creator}
-              onValueChange={(v) => {
-                setCreator(v)
-                resetPage()
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                {creators.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {formatCreatorName(c)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Fecha Inicio</Label>
-            <DateRangePicker
-              value={startRange}
-              onChange={(range) => {
-                setStartRange(range)
-                resetPage()
-              }}
-              placeholder="Cualquier fecha"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Fecha Fin</Label>
-            <DateRangePicker
-              value={endRange}
-              onChange={(range) => {
-                setEndRange(range)
-                resetPage()
-              }}
-              placeholder="Cualquier fecha"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={clearFilters}>
-            <FilterX /> Limpiar Filtro
-          </Button>
-        </div>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            Mostrar
-            <Select
-              value={String(pageSize)}
-              onValueChange={(v) => {
-                setPageSize(Number(v))
-                resetPage()
-              }}
-            >
-              <SelectTrigger size="sm" className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            registros
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {filtered.length === 0
-              ? "Sin resultados"
-              : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, filtered.length)} de ${filtered.length}`}
-          </p>
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-24">Código</TableHead>
-              <TableHead className="min-w-[180px]">Nombre</TableHead>
-              <TableHead className="min-w-[240px]">Descripción</TableHead>
-              <TableHead className="w-[150px]">Creado</TableHead>
-              <TableHead className="w-[170px]">Vigencia</TableHead>
-              <TableHead className="w-28">Tipo</TableHead>
-              <TableHead className="w-[190px]">Tipo de Resultado</TableHead>
-              <TableHead className="w-[190px]">Estado</TableHead>
-              <TableHead className="w-16 text-center">Activo</TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginated.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
-                  No se encontraron reglas con esos filtros.
-                </TableCell>
-              </TableRow>
-            )}
-            {paginated.map((r) => (
-              <TableRow
-                key={r.id}
-                className="cursor-pointer"
-                onClick={() => navigate(`/reglas-precio/${r.id}`)}
-              >
-                <TableCell className="font-mono text-xs text-muted-foreground">{r.id}</TableCell>
-                <TableCell className="py-2.5 font-medium whitespace-normal">{r.name}</TableCell>
-                <TableCell className="py-2.5 text-sm whitespace-normal text-muted-foreground">
-                  {r.description || "—"}
-                </TableCell>
-                <TableCell className="text-sm whitespace-normal text-muted-foreground">
-                  {formatDateTime(r.createdAt)}
-                </TableCell>
-                <TableCell className="text-sm whitespace-normal text-muted-foreground">
-                  {formatDate(r.fromDate)} – {formatDate(r.thruDate)}
-                </TableCell>
-                <TableCell>{OUTCOME_MODE_LABELS[r.outcomeMode]}</TableCell>
-                <TableCell className="text-sm whitespace-normal text-muted-foreground">
-                  {OUTCOME_TYPE_LABELS[r.outcomeType]}
-                </TableCell>
-                <TableCell>
-                  <ApprovalStatusBadge status={r.approvalStatus} />
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()} className="text-center">
-                  <StatusDot status={r.status} />
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon-sm" aria-label="Acciones">
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/reglas-precio/${r.id}`)}>
-                        <Eye /> Ver detalle
-                      </DropdownMenuItem>
-                      {can("price_rules.edit") && r.approvalStatus !== "APPROVED" && (
-                        <DropdownMenuItem onClick={() => navigate(`/reglas-precio/${r.id}/editar`)}>
-                          <Pencil /> Editar
-                        </DropdownMenuItem>
-                      )}
-                      {can("price_rules.duplicate") && (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            duplicateRule(r.id)
-                            resetPage()
-                          }}
-                        >
-                          <Copy /> Duplicar
-                        </DropdownMenuItem>
-                      )}
-                      {can("price_rules.approve") && r.approvalStatus === "WAITING_COMMERCIAL_APPROVAL" && (
-                        <DropdownMenuItem onClick={() => setApprovalTarget(r)}>
-                          <CheckCircle2 /> Aprobar / Rechazar
-                        </DropdownMenuItem>
-                      )}
-                      {can("price_rules.reject_approved") && r.approvalStatus === "APPROVED" && (
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => setRejectApprovedTarget(r)}
-                        >
-                          <Ban /> Rechazar (ya aprobada)
-                        </DropdownMenuItem>
-                      )}
-                      {can("price_rules.toggle_status") && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            disabled={r.approvalStatus !== "APPROVED"}
-                            onClick={() => toggleEnabled(r.id)}
-                          >
-                            {r.status === "ENABLE" ? (
-                              <>
-                                <PowerOff /> Desactivar
-                              </>
-                            ) : (
-                              <>
-                                <Power /> Activar
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        <div className="flex flex-wrap items-center justify-center gap-1 border-t px-4 py-3">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setCurrentPage(page - 1)}
-            className="gap-1"
-          >
-            <ChevronLeft /> Anterior
-          </Button>
-          {pageNumbers.map((p, i) =>
-            p === "ellipsis" ? (
-              <span
-                key={`ellipsis-${i}`}
-                className="px-1.5 text-sm text-muted-foreground select-none"
-              >
-                …
-              </span>
-            ) : (
-              <Button
-                key={p}
-                variant={p === page ? "default" : "outline"}
-                size="sm"
-                className="w-8 px-0"
-                onClick={() => setCurrentPage(p)}
-              >
-                {p}
-              </Button>
-            )
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setCurrentPage(page + 1)}
-            className="gap-1"
-          >
-            Siguiente <ChevronRight />
-          </Button>
-        </div>
-      </Card>
+      <DataTable
+        tableId="price-rules"
+        columns={columns}
+        data={filtered}
+        getRowId={(r) => String(r.id)}
+        onRowClick={(r) => navigate(`/reglas-precio/${r.id}`)}
+        rowActions={rowActions}
+        searchable
+        searchPlaceholder="Nombre o código…"
+        searchKeys={["name", "id"]}
+        filterBar={
+          <FilterBar
+            defs={filterDefs}
+            values={filters}
+            onChange={(update) => setFilters((prev) => ({ ...prev, ...update }))}
+          />
+        }
+        clientPagination
+        defaultPageSize={10}
+        emptyTitle="Sin resultados"
+        emptyMessage="No se encontraron reglas con esos filtros."
+        exportable
+        exportFilename="reglas-precio"
+      />
 
       <ApprovalDialog
         rule={approvalTarget}
